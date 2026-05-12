@@ -1,0 +1,46 @@
+<!-- INCLUDE overall_header.html -->
+
+<div align="center">
+
+<form action="{S_PROFILE_ACTION}" method="post">
+<table border="0" width="50%" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tl.png" width="18" height="18" alt="" /></td>
+    <td height="18" style="background:url('{T_THEME_PATH}/images/tm.png');"></td>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tr.png" width="18" height="18" alt="" /></td>
+  </tr>
+  <tr>
+    <td width="18" style="background:url('{T_THEME_PATH}/images/ml.png');"></td>
+    <td>
+<table width="100%" border="0" cellpadding="4" cellspacing="0" class="tablebg">
+<tr>
+	<th colspan="2">{L_UCP_RESEND}</th>
+</tr>
+<tr>
+	<td class="row1" width="38%"><b class="genmed">{L_USERNAME}: </b></td>
+	<td class="row2"><input type="text" class="post" name="username" size="25" value="{USERNAME}" /></td>
+</tr>
+<tr>
+	<td class="row1"><b class="genmed">{L_EMAIL_ADDRESS}: </b><br /><span class="gensmall">{L_EMAIL_REMIND}</span></td>
+	<td class="row2"><input type="text" class="post" name="email" size="25" maxlength="100" value="{EMAIL}" /></td>
+</tr>
+<tr>
+	<td class="catb" colspan="2" align="center">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{L_SUBMIT}" class="btnmain" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" name="reset" class="btnlite" /></td>
+</tr>
+</table>
+</td>
+    <td width="18" style="background:url('{T_THEME_PATH}/images/mr.png');"></td>
+  </tr>
+  <tr>
+    <td width="18" height="18" align="right"><img src="{T_THEME_PATH}/images/bl.png" width="18" height="18" alt="" /></td>
+    <td height="18" style="background:url('{T_THEME_PATH}/images/bm.png');"></td>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/br.png" width="18" height="18" alt="" /></td>
+  </tr>
+</table>
+{S_FORM_TOKEN}
+
+</form>
+
+</div>
+
+<!-- INCLUDE overall_footer.html -->

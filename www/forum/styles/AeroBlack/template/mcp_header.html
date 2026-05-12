@@ -1,0 +1,90 @@
+<!-- INCLUDE overall_header.html -->
+
+<div id="pageheader">
+	<!-- IF U_MCP -->
+		<p class="linkmcp">
+			[ <a href="{U_MCP}">{L_MCP}</a><!-- IF U_MCP_FORUM --> | <a href="{U_MCP_FORUM}">{L_MODERATE_FORUM}</a><!-- ENDIF -->
+			<!-- IF U_MCP_TOPIC --> | <a href="{U_MCP_TOPIC}">{L_MODERATE_TOPIC}</a><!-- ENDIF -->
+			<!-- IF U_MCP_POST --> | <a href="{U_MCP_POST}">{L_MODERATE_POST}</a><!-- ENDIF --> ]
+		</p>
+	<!-- ENDIF -->
+
+	<!-- IF TOPIC_TITLE or FORUM_NAME -->
+	<h2><!-- IF TOPIC_TITLE --><a class="titles" href="{U_VIEW_TOPIC}">{TOPIC_TITLE}</a><!-- ELSE --><a class="titles" href="{U_VIEW_FORUM}">{FORUM_NAME}</a><!-- ENDIF --></h2>
+	<!-- ENDIF -->
+</div>
+
+<br clear="all" />
+
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tl.png" width="18" height="18" alt="" /></td>
+    <td height="18" style="background:url('{T_THEME_PATH}/images/tm.png');"></td>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tr.png" width="18" height="18" alt="" /></td>
+  </tr>
+  <tr>
+    <td width="18" style="background:url('{T_THEME_PATH}/images/ml.png');"></td>
+    <td>
+
+<div id="pagecontent">
+<table class="tabtable" width="100%" cellspacing="0" cellpadding="0" border="0">
+	<tr><td>
+<div id="tabs">
+	<ul>
+		<!-- BEGIN l_block1 -->
+		<li<!-- IF l_block1.S_SELECTED --> class="activetab"<!-- ENDIF -->><a href="{l_block1.U_TITLE}"><span>{l_block1.L_TITLE}</span></a></li>
+		<!-- END l_block1 -->
+	</ul>
+</div>
+</td></tr>
+</table>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+	<tr>
+		<td class="tablebg" width="20%" valign="top" style="border-right: 1px solid #A7BAC5">
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+	<tr><td>
+<div id="navigation">
+			<ul>
+			<!-- BEGIN l_block1 -->
+			<!-- IF l_block1.S_SELECTED -->
+				<!-- BEGIN l_block2 -->
+				<!-- IF l_block1.l_block2.S_SELECTED -->
+				<li id="active-subsection"><a href="{l_block1.l_block2.U_TITLE}"><span>{l_block1.l_block2.L_TITLE}<!-- IF l_block1.l_block2.ADD_ITEM --> ({l_block1.l_block2.ADD_ITEM})<!-- ENDIF --></span></a></li>
+				<!-- ELSE -->
+				<li><a href="{l_block1.l_block2.U_TITLE}"><span>{l_block1.l_block2.L_TITLE}<!-- IF l_block1.l_block2.ADD_ITEM --> ({l_block1.l_block2.ADD_ITEM})<!-- ENDIF --></span></a></li>
+				<!-- ENDIF -->
+				<!-- END l_block2 -->
+			<!-- ENDIF -->
+			<!-- END l_block1 -->
+			</ul>
+		</div>
+        </td></tr>
+</table>
+		</td>
+		<td class="tablebg" width="80%" valign="top">
+
+		<!-- IF MESSAGE -->
+			<table class="tablebg" width="100%" cellspacing="0">
+			<tr>
+				<th>{L_MESSAGE}</th>
+			</tr>
+			<tr>
+				<td class="row1" align="center"><br /><span class="gen">{MESSAGE}<br /><br /><!-- BEGIN return_links -->{return_links.MESSAGE_LINK}<br /><br /><!-- END return_links --></span></td>
+			</tr>
+			</table>
+		<!-- ENDIF -->
+
+		<!-- IF CONFIRM_MESSAGE -->
+			<form name="confirm" method="post" action="{S_CONFIRM_ACTION}">
+			<table class="tablebg" width="100%" cellspacing="0">
+			<tr>
+				<th>{L_PLEASE_CONFIRM}</th>
+			</tr>
+			<tr>
+				<td class="row1" align="center"><span class="gen"><br />{CONFIRM_MESSAGE}<br /><br />{S_HIDDEN_FIELDS}<input class="btnmain" type="submit" name="confirm" value="{L_YES}" />&nbsp;&nbsp;<input class="btnlite" type="submit" name="cancel" value="{L_NO}" /><br /><br /></span></td>
+			</tr>
+			</table>
+			</form>
+
+<!-- ENDIF -->

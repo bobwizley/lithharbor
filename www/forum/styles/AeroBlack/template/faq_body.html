@@ -1,0 +1,92 @@
+<!-- INCLUDE overall_header.html -->
+
+<a name="faqtop"></a>
+
+<div id="pagecontent">
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tl.png" width="18" height="18" alt="" /></td>
+    <td height="18" style="background:url('{T_THEME_PATH}/images/tm.png');"></td>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tr.png" width="18" height="18" alt="" /></td>
+  </tr>
+  <tr>
+    <td width="18" style="background:url('{T_THEME_PATH}/images/ml.png');"></td>
+    <td>
+	<table class="tablebg" width="100%" cellspacing="0">
+	<tr>
+		<th>{L_FAQ_TITLE}</th>
+	</tr>
+	<tr>
+		<td class="row1">
+		<!-- BEGIN faq_block -->
+			<span class="gen"><b>{faq_block.BLOCK_TITLE}</b></span><br />
+			<!-- BEGIN faq_row -->
+				<span class="gen"><a class="postlink" href="#f{faq_block.S_ROW_COUNT}r{faq_block.faq_row.S_ROW_COUNT}">{faq_block.faq_row.FAQ_QUESTION}</a></span><br />
+			<!-- END faq_row -->
+			<br />
+		<!-- END faq_block -->
+		</td>
+	</tr>
+	</table>
+</td>
+    <td width="18" style="background:url('{T_THEME_PATH}/images/mr.png');"></td>
+  </tr>
+  <tr>
+    <td width="18" height="18" align="right"><img src="{T_THEME_PATH}/images/bl.png" width="18" height="18" alt="" /></td>
+    <td height="18" style="background:url('{T_THEME_PATH}/images/bm.png');"></td>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/br.png" width="18" height="18" alt="" /></td>
+  </tr>
+</table>
+	<br clear="all" />
+    <!-- BEGIN faq_block -->
+<table width="100%" border="0" cellpadding="0" cellspacing="0">
+  <tr>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tl.png" width="18" height="18" alt="" /></td>
+    <td height="18" style="background:url('{T_THEME_PATH}/images/tm.png');"></td>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/tr.png" width="18" height="18" alt="" /></td>
+  </tr>
+  <tr>
+    <td width="18" style="background:url('{T_THEME_PATH}/images/ml.png');"></td>
+    <td>
+		<table class="tablebg" width="100%" cellspacing="0">
+		<tr> 
+			<td class="cat" align="center"><h4>{faq_block.BLOCK_TITLE}</h4></td>
+		</tr>
+		<!-- BEGIN faq_row --> 
+		<tr>
+			<!-- IF faq_block.faq_row.S_ROW_COUNT is even -->
+				<td class="row1" valign="top">
+			<!-- ELSE -->
+				<td class="row2" valign="top">
+			<!-- ENDIF -->
+				<div class="postbody"><a name="f{faq_block.S_ROW_COUNT}r{faq_block.faq_row.S_ROW_COUNT}"></a><b>&#187; {faq_block.faq_row.FAQ_QUESTION}</b></div>
+				<div class="postbody">{faq_block.faq_row.FAQ_ANSWER}</div>
+				<p align="right" class="gensmall"><a href="#wrapheader"><img src="{T_THEME_PATH}/images/up.png" width="11" height="18" border="0" /></a></p>
+			</td>
+		</tr>
+		<tr>
+			<td class="spacer" height="1"><img src="images/spacer.gif" alt="" width="1" height="1" /></td>
+		</tr>
+		<!-- END faq_row -->
+		</table>
+</td>
+    <td width="18" style="background:url('{T_THEME_PATH}/images/mr.png');"></td>
+  </tr>
+  <tr>
+    <td width="18" height="18" align="right"><img src="{T_THEME_PATH}/images/bl.png" width="18" height="18" alt="" /></td>
+    <td height="18" style="background:url('{T_THEME_PATH}/images/bm.png');"></td>
+    <td width="18" height="18"><img src="{T_THEME_PATH}/images/br.png" width="18" height="18" alt="" /></td>
+  </tr>
+</table>
+		<br clear="all" />
+	<!-- END faq_block -->
+
+</div>
+
+<!-- INCLUDE breadcrumbs.html -->
+
+<br clear="all" />
+
+<div class="forumbar" align="{S_CONTENT_FLOW_END}"><!-- INCLUDE jumpbox.html --></div>
+
+<!-- INCLUDE overall_footer.html -->

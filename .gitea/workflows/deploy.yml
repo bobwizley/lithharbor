@@ -1,0 +1,43 @@
+name: build-and-deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.codelab.tec.br
+  IMAGE_PHP: registry.codelab.tec.br/vctrtvfrrr/lithharbor
+  IMAGE_NGINX: registry.codelab.tec.br/vctrtvfrrr/lithharbor-nginx
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: catthehacker/ubuntu:act-latest
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /opt/compose:/opt/compose
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Registry login
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "${REGISTRY}" -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+
+      - name: Build PHP image
+        run: docker build -f Dockerfile -t "${IMAGE_PHP}:${{ github.sha }}" -t "${IMAGE_PHP}:latest" .
+
+      - name: Build nginx image
+        run: docker build -f Dockerfile.nginx -t "${IMAGE_NGINX}:${{ github.sha }}" -t "${IMAGE_NGINX}:latest" .
+
+      - name: Push images
+        run: |
+          docker push "${IMAGE_PHP}:${{ github.sha }}"
+          docker push "${IMAGE_PHP}:latest"
+          docker push "${IMAGE_NGINX}:${{ github.sha }}"
+          docker push "${IMAGE_NGINX}:latest"
+
+      - name: Deploy
+        run: |
+          docker compose -f /opt/compose/lithharbor/compose.yml pull
+          docker compose -f /opt/compose/lithharbor/compose.yml up -d --force-recreate

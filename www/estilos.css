@@ -1,0 +1,65 @@
+body {
+    cursor: url('cursors/aero_arrow.cur'), auto;
+}
+a, a:visited, a:hover, a:focus, a:active {
+    cursor: url('cursors/aero_link.ani'), auto;
+    text-decoration: none;
+    color: #3A9CCD;
+}
+
+.form {
+    font-family: Verdana;
+    font-size: 10px;
+    color: #0099FF;
+    border: 1px solid #C0C0C0;
+    background-color: #F5F5F5;
+}
+
+.titulo1 {
+    font-family: "Comic Sans MS";
+    font-size: 26px;
+    color: #000000;
+}
+
+.titulo2 {
+    font-family: "Comic Sans MS";
+    font-size: 22px;
+    color: #0099FF;
+}
+
+.texto {
+    font-family: "Comic Sans MS";
+    font-size: 12px;
+    color: #0033FF;
+}
+
+.subtitulo {
+    font-family: Verdana;
+    font-size: 12px;
+    color: #0099FF;
+}
+a.link_menu:link {
+    text-decoration: none;
+    color: #3A9CCD;
+}
+a.link_menu:visited {
+    text-decoration: none;
+    color: #3A9CCD;
+}
+a.link_menu:hover {
+    text-decoration: none;
+    color: #3A9CCD;
+}
+
+a.link_smenu:link {
+    text-decoration: none;
+    color: #3A9CCD;
+}
+a.link_smenu:visited {
+    text-decoration: none;
+    color: #3A9CCD;
+}
+a.link_smenu:hover {
+    text-decoration: none;
+    color: #3A9CCD;
+}

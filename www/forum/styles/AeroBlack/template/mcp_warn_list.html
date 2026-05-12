@@ -1,0 +1,42 @@
+<!-- INCLUDE mcp_header.html -->
+
+<form method="post" name="mcp" action="{U_POST_ACTION}">
+<table class="tablebg" width="100%" cellspacing="0">
+<tr>
+	<th colspan="4" align="center">{L_WARNED_USERS}</th>
+</tr>
+<tr>
+	<td class="row3h" align="center">&nbsp;{L_USERNAME}&nbsp;</td>
+	<td class="row3h" align="center">&nbsp;{L_WARNINGS}&nbsp;</td>
+	<td class="row3h" align="center">&nbsp;{L_LATEST_WARNING_TIME}&nbsp;</td>
+	<td class="row3h">&nbsp;</td>
+</tr>
+<!-- BEGIN user -->
+	<tr>
+		<td class="row1" width="15%" valign="top"><span class="gen">{user.USERNAME_FULL}</span></td>
+		<td class="row2" width="15%" valign="top"><span class="gen">{user.WARNINGS}</span></td>
+		<td class="row1" width="15%" valign="top"><span class="gen">{user.WARNING_TIME}</span></td>
+		<td class="row2" width="15%" valign="top"><span class="gen"><a href="{user.U_NOTES}">{L_VIEW_NOTES}</a></span></td>
+	</tr>
+<!-- BEGINELSE -->
+	<tr>
+		<td class="row1" colspan="4" align="center"><span class="gen">{L_WARNINGS_ZERO_TOTAL}</span></td>
+	</tr>
+<!-- END user -->
+<tr align="center">
+	<td class="catb" colspan="4"><span class="gensmall">{L_DISPLAY_POSTS}:</span> {S_SELECT_SORT_DAYS}&nbsp;<span class="gensmall">{L_SORT_BY}</span> {S_SELECT_SORT_KEY} {S_SELECT_SORT_DIR}&nbsp;<input class="btnlite" type="submit" value="{L_GO}" name="sort" /></td>
+</tr>
+</table>
+
+<div class="tbspace">
+<table width="100%" cellspacing="0" cellpadding="0">
+<tr>
+	<td class="pagination">{PAGE_NUMBER} [ {TOTAL_USERS} ]</td>
+	<td align="{S_CONTENT_FLOW_END}"><span class="pagination"><!-- INCLUDE pagination.html --></span></td>
+</tr>
+</table>
+</div>
+{S_FORM_TOKEN}
+</form>
+
+<!-- INCLUDE mcp_footer.html -->

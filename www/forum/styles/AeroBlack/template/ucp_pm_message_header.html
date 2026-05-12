@@ -1,0 +1,54 @@
+<div class="tbspace">
+<table width="100%" cellspacing="0" cellpadding="0">
+<tr>
+	<td>
+		<table border="0" cellspacing="0" cellpadding="0" width="100%">
+		<tr>
+			<td align="{S_CONTENT_FLOW_BEGIN}">
+			<!-- IF TOTAL_MESSAGES -->
+				<table width="100%" cellspacing="0">
+				<tr>
+					<td class="nav" valign="middle" nowrap="nowrap">{PAGE_NUMBER}<br /></td>
+					<!-- IF FOLDER_MAX_MESSAGES neq 0 -->
+						<td class="gensmall" nowrap="nowrap" width="100%">&nbsp;[ <b>{FOLDER_CUR_MESSAGES}</b>/{FOLDER_MAX_MESSAGES} {L_MESSAGES} ({FOLDER_PERCENT}%) ]&nbsp;</td>
+					<!-- ELSE -->
+						<td class="gensmall" nowrap="nowrap" width="100%">&nbsp;[ <b>{FOLDER_CUR_MESSAGES}</b> {L_MESSAGES} ]&nbsp;</td>					
+					<!-- ENDIF -->
+				</tr>
+				</table>
+			<!-- ENDIF -->
+	
+			<!-- IF S_VIEW_MESSAGE -->
+				<span class="gensmall">
+				<!-- IF S_DISPLAY_HISTORY -->
+					<!-- IF U_VIEW_PREVIOUS_HISTORY --><a href="{U_VIEW_PREVIOUS_HISTORY}">{L_VIEW_PREVIOUS_HISTORY}</a> | <!-- ENDIF --><!-- IF U_VIEW_NEXT_HISTORY --><a href="{U_VIEW_NEXT_HISTORY}">{L_VIEW_NEXT_HISTORY}</a> | <!-- ENDIF -->
+				<!-- ENDIF --><a href="{U_PREVIOUS_PM}">{L_VIEW_PREVIOUS_PM}</a> | <a href="{U_NEXT_PM}">{L_VIEW_NEXT_PM}</a>&nbsp;
+				</span>
+			<!-- ENDIF -->
+			</td>
+			<td align="{S_CONTENT_FLOW_END}">
+<!-- IF S_VIEW_MESSAGE -->
+					<span class="gensmall">
+						<!-- IF U_PRINT_PM --><a href="{U_PRINT_PM}" title="{L_PRINT_PM}">{L_PRINT_PM}</a><!-- IF U_FORWARD_PM --> | <!-- ENDIF --><!-- ENDIF -->
+						<!-- IF U_FORWARD_PM --><a href="{U_FORWARD_PM}" title="{L_FORWARD_PM}">{L_FORWARD_PM}</a><!-- ENDIF -->
+					</span>
+<!-- ENDIF -->
+</td>
+</tr>
+<tr>
+<td align="{S_CONTENT_FLOW_END}"><!-- INCLUDE pagination.html --></td>
+</tr>
+<!-- IF not S_VIEW_MESSAGE -->
+<tr><td height="5"></td></tr>
+<tr><td>
+<form name="sortmsg" method="post" action="{S_PM_ACTION}" style="margin:0px">
+<span class="gensmall">{L_DISPLAY_MESSAGES}:</span> {S_SELECT_SORT_DAYS} <span class="gensmall">{L_SORT_BY}</span> {S_SELECT_SORT_KEY} {S_SELECT_SORT_DIR} <input class="btnlite" type="submit" name="sort" value="{L_GO}" />
+{S_FORM_TOKEN}
+</form>
+</td></tr>
+<!-- ENDIF -->
+		</table>
+	</td>
+</tr>
+</table>
+</div>

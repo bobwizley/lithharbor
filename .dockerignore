@@ -1,0 +1,7 @@
+.git
+.gitea
+*.sql
+*.sql.gz
+*.log
+.DS_Store
+README.md
