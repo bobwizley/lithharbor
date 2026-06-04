@@ -37,7 +37,11 @@ jobs:
           docker push "${IMAGE_NGINX}:${{ github.sha }}"
           docker push "${IMAGE_NGINX}:latest"
 
-      - name: Deploy
-        run: |
-          docker compose -f /opt/compose/lithharbor/compose.yml pull
-          docker compose -f /opt/compose/lithharbor/compose.yml up -d --force-recreate
+      - name: Deploy stack
+        uses: https://git.codelab.tec.br/codelab/deploy-stack@master
+        with:
+          service: lithharbor
+          bw-server: ${{ secrets.BW_SERVER }}
+          bw-clientid: ${{ secrets.BW_CLIENTID }}
+          bw-clientsecret: ${{ secrets.BW_CLIENTSECRET }}
+          bw-password: ${{ secrets.BW_PASSWORD }}

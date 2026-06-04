@@ -3,11 +3,11 @@ ini_set('display_errors','off');
 // phpBB 3.0.x auto-generated configuration file
 // Do not change anything in this file!
 $dbms = 'mysqli';
-$dbhost = 'mariadb';
-$dbport = '3306';
-$dbname = 'lithharbor';
-$dbuser = 'lithharbor';
-$dbpasswd = 'f83107366ff5ef67002519d235ea543415d6503eab5bb392';
+$dbhost = getenv('DB_HOST') ?: 'mariadb';
+$dbport = getenv('DB_PORT') ?: '3306';
+$dbname = getenv('DB_NAME') ?: 'lithharbor';
+$dbuser = getenv('DB_USER') ?: 'lithharbor';
+$dbpasswd = getenv('DB_PASSWORD') ?: '';
 $table_prefix = 'phpbb_';
 $acm_type = 'file';
 $load_extensions = '';

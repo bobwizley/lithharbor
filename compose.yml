@@ -1,0 +1,43 @@
+services:
+  lithharbor-php:
+    image: registry.codelab.tec.br/vctrtvfrrr/lithharbor:latest
+    container_name: lithharbor-php
+    restart: unless-stopped
+    pull_policy: always
+    env_file:
+      - .env
+    networks:
+      - traefik-public
+      - mariadb-internal
+    mem_limit: 256m
+
+  lithharbor-nginx:
+    image: registry.codelab.tec.br/vctrtvfrrr/lithharbor-nginx:latest
+    container_name: lithharbor-nginx
+    restart: unless-stopped
+    pull_policy: always
+    depends_on:
+      - lithharbor-php
+    networks:
+      - traefik-public
+    mem_limit: 64m
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.lithharbor.rule=Host(`lithharbor.net`) || Host(`www.lithharbor.net`)"
+      - "traefik.http.routers.lithharbor.entrypoints=websecure"
+      - "traefik.http.routers.lithharbor.tls=true"
+      - "traefik.http.routers.lithharbor.tls.certresolver=cloudflare"
+      - "traefik.http.routers.lithharbor.tls.domains[0].main=lithharbor.net"
+      - "traefik.http.routers.lithharbor.tls.domains[0].sans=*.lithharbor.net"
+      - "traefik.http.routers.lithharbor.middlewares=lithharbor-www-redirect@docker,security-headers@file"
+      - "traefik.http.services.lithharbor.loadbalancer.server.port=80"
+      - "traefik.http.middlewares.lithharbor-www-redirect.redirectregex.regex=^https?://www\\.lithharbor\\.net/(.*)"
+      - "traefik.http.middlewares.lithharbor-www-redirect.redirectregex.replacement=https://lithharbor.net/$${1}"
+      - "traefik.http.middlewares.lithharbor-www-redirect.redirectregex.permanent=true"
+
+networks:
+  traefik-public:
+    external: true
+  mariadb-internal:
+    external: true

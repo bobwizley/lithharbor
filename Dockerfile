@@ -16,7 +16,8 @@ WORKDIR /var/www/html
 COPY www ./
 RUN chown -R www-data:www-data /var/www/html
 
-RUN sed -i 's|^listen = .*|listen = 9000|' /usr/local/etc/php-fpm.d/www.conf
+RUN sed -i 's|^listen = .*|listen = 9000|' /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i 's|^;\?clear_env = .*|clear_env = no|' /usr/local/etc/php-fpm.d/www.conf
 
 EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
