@@ -1,0 +1,31 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: mariadb
+    ports:
+      - "127.0.0.1:3306:3306"
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+      MARIADB_AUTO_UPGRADE: "1"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb-buffer-pool-size=512M
+      - --max-connections=200
+      - --skip-name-resolve
+    volumes:
+      - ./data/db:/var/lib/mysql
+      - ./data/dumps:/dumps
+    networks:
+      - mariadb
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  mariadb:
