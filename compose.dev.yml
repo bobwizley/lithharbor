@@ -15,8 +15,8 @@ services:
       - --max-connections=200
       - --skip-name-resolve
     volumes:
-      - ./data/db:/var/lib/mysql
-      - ./data/dumps:/dumps
+      - mariadb-data:/var/lib/mysql
+      - ./data/dumps:/dumps:ro
     networks:
       - mariadb
     mem_limit: 1g
@@ -29,3 +29,6 @@ services:
 
 networks:
   mariadb:
+
+volumes:
+  mariadb-data:
