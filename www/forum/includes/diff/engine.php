@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package diff
-* @version $Id: engine.php 9251 2009-01-12 16:47:58Z acydburn $
-* @copyright (c) 2006 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -20,7 +23,7 @@ if (!defined('IN_PHPBB'))
 * Code from pear.php.net, Text_Diff-1.1.0 package
 * http://pear.php.net/package/Text_Diff/ (native engine)
 *
-* Modified by phpBB Group to meet our coding standards
+* Modified by phpBB Limited to meet our coding standards
 * and being able to integrate into phpBB
 *
 * Class used internally by Text_Diff to actually compute the diffs. This
@@ -49,6 +52,11 @@ if (!defined('IN_PHPBB'))
 */
 class diff_engine
 {
+	/**
+	* If set to true we trim all lines before we compare them. This ensures that sole space/tab changes do not trigger diffs.
+	*/
+	var $skip_whitespace_changes = true;
+
 	function diff(&$from_lines, &$to_lines, $preserve_cr = true)
 	{
 		// Remove empty lines...
@@ -76,8 +84,8 @@ class diff_engine
 			$to_lines = explode("\n", preg_replace('#[\n\r]+#', "\n", $to_lines));
 		}
 
-		$n_from = sizeof($from_lines);
-		$n_to = sizeof($to_lines);
+		$n_from = count($from_lines);
+		$n_to = count($to_lines);
 
 		$this->xchanged = $this->ychanged = $this->xv = $this->yv = $this->xind = $this->yind = array();
 		unset($this->seq, $this->in_seq, $this->lcs);
@@ -85,7 +93,7 @@ class diff_engine
 		// Skip leading common lines.
 		for ($skip = 0; $skip < $n_from && $skip < $n_to; $skip++)
 		{
-			if ($from_lines[$skip] !== $to_lines[$skip])
+			if (trim($from_lines[$skip]) !== trim($to_lines[$skip]))
 			{
 				break;
 			}
@@ -98,7 +106,7 @@ class diff_engine
 
 		for ($endskip = 0; --$xi > $skip && --$yi > $skip; $endskip++)
 		{
-			if ($from_lines[$xi] !== $to_lines[$yi])
+			if (trim($from_lines[$xi]) !== trim($to_lines[$yi]))
 			{
 				break;
 			}
@@ -108,12 +116,12 @@ class diff_engine
 		// Ignore lines which do not exist in both files.
 		for ($xi = $skip; $xi < $n_from - $endskip; $xi++)
 		{
-			$xhash[$from_lines[$xi]] = 1;
+			if ($this->skip_whitespace_changes) $xhash[trim($from_lines[$xi])] = 1; else $xhash[$from_lines[$xi]] = 1;
 		}
 
 		for ($yi = $skip; $yi < $n_to - $endskip; $yi++)
 		{
-			$line = $to_lines[$yi];
+			$line = ($this->skip_whitespace_changes) ? trim($to_lines[$yi]) : $to_lines[$yi];
 
 			if (($this->ychanged[$yi] = empty($xhash[$line])))
 			{
@@ -126,7 +134,7 @@ class diff_engine
 
 		for ($xi = $skip; $xi < $n_from - $endskip; $xi++)
 		{
-			$line = $from_lines[$xi];
+			$line = ($this->skip_whitespace_changes) ? trim($from_lines[$xi]) : $from_lines[$xi];
 
 			if (($this->xchanged[$xi] = empty($yhash[$line])))
 			{
@@ -137,11 +145,24 @@ class diff_engine
 		}
 
 		// Find the LCS.
-		$this->_compareseq(0, sizeof($this->xv), 0, sizeof($this->yv));
+		$this->_compareseq(0, count($this->xv), 0, count($this->yv));
 
 		// Merge edits when possible.
-		$this->_shift_boundaries($from_lines, $this->xchanged, $this->ychanged);
-		$this->_shift_boundaries($to_lines, $this->ychanged, $this->xchanged);
+		if ($this->skip_whitespace_changes)
+		{
+			$from_lines_clean = array_map('trim', $from_lines);
+			$to_lines_clean = array_map('trim', $to_lines);
+
+			$this->_shift_boundaries($from_lines_clean, $this->xchanged, $this->ychanged);
+			$this->_shift_boundaries($to_lines_clean, $this->ychanged, $this->xchanged);
+
+			unset($from_lines_clean, $to_lines_clean);
+		}
+		else
+		{
+			$this->_shift_boundaries($from_lines, $this->xchanged, $this->ychanged);
+			$this->_shift_boundaries($to_lines, $this->ychanged, $this->xchanged);
+		}
 
 		// Compute the edit operations.
 		$edits = array();
@@ -264,8 +285,9 @@ class diff_engine
 				$matches = $ymatches[$line];
 
 				reset($matches);
-				while (list(, $y) = each($matches))
+				while ($y = current($matches))
 				{
+					next($matches);
 					if (empty($this->in_seq[$y]))
 					{
 						$k = $this->_lcs_pos($y);
@@ -275,8 +297,9 @@ class diff_engine
 				}
 
 				// no reset() here
-				while (list(, $y) = each($matches))
+				while ($y = current($matches))
 				{
+					next($matches);
 					if ($y > $this->seq[$k - 1])
 					{
 						// Optimization: this is a common case: next match is just replacing previous match.
@@ -423,8 +446,8 @@ class diff_engine
 		$i = 0;
 		$j = 0;
 
-		$len = sizeof($lines);
-		$other_len = sizeof($other_changed);
+		$len = count($lines);
+		$other_len = count($other_changed);
 
 		while (1)
 		{
@@ -532,5 +555,3 @@ class diff_engine
 		}
 	}
 }
-
-?>

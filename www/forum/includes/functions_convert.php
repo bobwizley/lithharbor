@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package install
-* @version $Id: functions_convert.php 8876 2008-09-18 14:26:56Z acydburn $
-* @copyright (c) 2006 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -189,7 +192,7 @@ function get_group_id($group_name)
 		$db->sql_freeresult($result);
 	}
 
-	if (!sizeof($group_mapping))
+	if (!count($group_mapping))
 	{
 		add_default_groups();
 		return get_group_id($group_name);
@@ -201,14 +204,6 @@ function get_group_id($group_name)
 	}
 
 	return $group_mapping['REGISTERED'];
-}
-
-/**
-* Generate the email hash stored in the users table
-*/
-function gen_email_hash($email)
-{
-	return (crc32(strtolower($email)) . strlen($email));
 }
 
 /**
@@ -244,7 +239,7 @@ function validate_website($url)
 	{
 		return '';
 	}
-	else if (!preg_match('#^[a-z0-9]+://#i', $url) && strlen($url) > 0)
+	else if (!preg_match('#^http[s]?://#i', $url) && strlen($url) > 0)
 	{
 		return 'http://' . $url;
 	}
@@ -302,7 +297,7 @@ function decode_ip($int_ip)
 	$hexipbang = explode('.', chunk_split($int_ip, 2, '.'));
 
 	// Any mod changing the way ips are stored? Then we are not able to convert and enter the ip "as is" to not "destroy" anything...
-	if (sizeof($hexipbang) < 4)
+	if (count($hexipbang) < 4)
 	{
 		return $int_ip;
 	}
@@ -418,11 +413,12 @@ function remote_avatar_dims()
 
 function import_avatar_gallery($gallery_name = '', $subdirs_as_galleries = false)
 {
-	global $config, $convert, $phpbb_root_path, $user;
+	global $config, $convert, $user;
 
 	$relative_path = empty($convert->convertor['source_path_absolute']);
 
-	if (empty($convert->convertor['avatar_gallery_path']))
+	// check for trailing slash
+	if (rtrim($convert->convertor['avatar_gallery_path'], '/') === '')
 	{
 		$convert->p_master->error(sprintf($user->lang['CONV_ERROR_NO_GALLERY_PATH'], 'import_avatar_gallery()'), __LINE__, __FILE__);
 	}
@@ -473,7 +469,7 @@ function import_avatar_gallery($gallery_name = '', $subdirs_as_galleries = false
 				$dir->close();
 			}
 
-			for ($i = 0; $i < sizeof($dirlist); ++$i)
+			for ($i = 0, $end = count($dirlist); $i < $end; ++$i)
 			{
 				$dir = $dirlist[$i];
 
@@ -486,7 +482,7 @@ function import_avatar_gallery($gallery_name = '', $subdirs_as_galleries = false
 
 function import_attachment_files($category_name = '')
 {
-	global $config, $convert, $phpbb_root_path, $db, $user;
+	global $config, $convert, $db, $user;
 
 	$sql = 'SELECT config_value AS upload_path
 		FROM ' . CONFIG_TABLE . "
@@ -551,7 +547,7 @@ function _import_check($config_var, $source, $use_target)
 	);
 
 	// copy file will prepend $phpBB_root_path
-	$target = $config[$config_var] . '/' . basename(($use_target === false) ? $source : $use_target);
+	$target = $config[$config_var] . '/' . utf8_basename(($use_target === false) ? $source : $use_target);
 
 	if (!empty($convert->convertor[$config_var]) && strpos($source, $convert->convertor[$config_var]) !== 0)
 	{
@@ -567,11 +563,11 @@ function _import_check($config_var, $source, $use_target)
 
 	if ($result['copied'])
 	{
-		$result['target'] = basename($target);
+		$result['target'] = utf8_basename($target);
 	}
 	else
 	{
-		$result['target'] = ($use_target !== false) ? $result['orig_source'] : basename($target);
+		$result['target'] = ($use_target !== false) ? $result['orig_source'] : utf8_basename($target);
 	}
 
 	return $result;
@@ -584,9 +580,10 @@ function import_attachment($source, $use_target = false)
 		return '';
 	}
 
-	global $convert, $phpbb_root_path, $config, $user;
+	global $convert, $config, $user;
 
-	if (empty($convert->convertor['upload_path']))
+	// check for trailing slash
+	if (rtrim($convert->convertor['upload_path'], '/') === '')
 	{
 		$convert->p_master->error(sprintf($user->lang['CONV_ERROR_NO_UPLOAD_DIR'], 'import_attachment()'), __LINE__, __FILE__);
 	}
@@ -600,7 +597,7 @@ function import_attachment($source, $use_target = false)
 		{
 			$thumb_dir = $convert->convertor['thumbnails'][0];
 			$thumb_prefix = $convert->convertor['thumbnails'][1];
-			$thumb_source = $thumb_dir . $thumb_prefix . basename($result['source']);
+			$thumb_source = $thumb_dir . $thumb_prefix . utf8_basename($result['source']);
 
 			if (strpos($thumb_source, $convert->convertor['upload_path']) !== 0)
 			{
@@ -625,7 +622,7 @@ function import_rank($source, $use_target = false)
 		return '';
 	}
 
-	global $convert, $phpbb_root_path, $config, $user;
+	global $convert, $user;
 
 	if (!isset($convert->convertor['ranks_path']))
 	{
@@ -643,9 +640,10 @@ function import_smiley($source, $use_target = false)
 		return '';
 	}
 
-	global $convert, $phpbb_root_path, $config, $user;
+	global $convert, $user;
 
-	if (!isset($convert->convertor['smilies_path']))
+	// check for trailing slash
+	if (rtrim($convert->convertor['smilies_path'], '/') === '')
 	{
 		$convert->p_master->error(sprintf($user->lang['CONV_ERROR_NO_SMILIES_PATH'], 'import_smiley()'), __LINE__, __FILE__);
 	}
@@ -663,9 +661,10 @@ function import_avatar($source, $use_target = false, $user_id = false)
 		return;
 	}
 
-	global $convert, $phpbb_root_path, $config, $user;
+	global $convert, $config, $user;
 
-	if (!isset($convert->convertor['avatar_path']))
+	// check for trailing slash
+	if (rtrim($convert->convertor['avatar_path'], '/') === '')
 	{
 		$convert->p_master->error(sprintf($user->lang['CONV_ERROR_NO_AVATAR_PATH'], 'import_avatar()'), __LINE__, __FILE__);
 	}
@@ -675,7 +674,7 @@ function import_avatar($source, $use_target = false, $user_id = false)
 		$use_target = $config['avatar_salt'] . '_' . $user_id . '.' . substr(strrchr($source, '.'), 1);
 	}
 
-	$result = _import_check('avatar_path', $source, $use_target);
+	_import_check('avatar_path', $source, $use_target);
 
 	return ((!empty($user_id)) ? $user_id : $use_target) . '.' . substr(strrchr($source, '.'), 1);
 }
@@ -741,7 +740,7 @@ function get_smiley_dim($source, $axis)
 		return $smiley_cache[$source][$axis];
 	}
 
-	global $convert, $phpbb_root_path, $config, $user;
+	global $convert, $user;
 
 	$orig_source = $source;
 
@@ -818,7 +817,7 @@ function get_avatar_dim($src, $axis, $func = false, $arg1 = false, $arg2 = false
 		break;
 
 		case AVATAR_REMOTE:
-			 // see notes on this functions usage and (hopefully) model $func to avoid this accordingly
+			// see notes on this functions usage and (hopefully) model $func to avoid this accordingly
 			return get_remote_avatar_dim($src, $axis);
 		break;
 
@@ -849,14 +848,12 @@ function get_upload_avatar_dim($source, $axis)
 		return $cachedims[$axis];
 	}
 
-	$orig_source = $source;
-
 	if (substr($source, 0, 7) == 'upload:')
 	{
 		$source = substr($source, 7);
 	}
 
-	global $convert, $phpbb_root_path, $config, $user;
+	global $convert, $user;
 
 	if (!isset($convert->convertor['avatar_path']))
 	{
@@ -898,7 +895,7 @@ function get_gallery_avatar_dim($source, $axis)
 		return $avatar_cache[$source][$axis];
 	}
 
-	global $convert, $phpbb_root_path, $config, $user;
+	global $convert, $user;
 
 	$orig_source = $source;
 
@@ -957,7 +954,7 @@ function get_remote_avatar_dim($src, $axis)
 	$protocol = (isset($url_info['scheme'])) ? $url_info['scheme'] : 'http';
 	if (empty($port))
 	{
-		switch(strtolower($protocol))
+		switch (strtolower($protocol))
 		{
 			case 'ftp':
 				$port = 21;
@@ -998,8 +995,8 @@ function get_remote_avatar_dim($src, $axis)
 		{
 			$bigger = ($remote_avatar_cache[$src][0] > $remote_avatar_cache[$src][1]) ? 0 : 1;
 			$ratio = $default[$bigger] / $remote_avatar_cache[$src][$bigger];
-			$remote_avatar_cache[$src][0] = (int)($remote_avatar_cache[$src][0] * $ratio);
-			$remote_avatar_cache[$src][1] = (int)($remote_avatar_cache[$src][1] * $ratio);
+			$remote_avatar_cache[$src][0] = (int) ($remote_avatar_cache[$src][0] * $ratio);
+			$remote_avatar_cache[$src][1] = (int) ($remote_avatar_cache[$src][1] * $ratio);
 		}
 	}
 
@@ -1022,7 +1019,9 @@ function set_user_options()
 		'attachsig'		=> array('bit' => 6, 'default' => 0),
 		'bbcode'		=> array('bit' => 8, 'default' => 1),
 		'smilies'		=> array('bit' => 9, 'default' => 1),
-		'popuppm'		=> array('bit' => 10, 'default' => 0),
+		'sig_bbcode'	=> array('bit' => 15, 'default' => 1),
+		'sig_smilies'	=> array('bit' => 16, 'default' => 1),
+		'sig_links'		=> array('bit' => 17, 'default' => 1),
 	);
 
 	$option_field = 0;
@@ -1109,9 +1108,9 @@ function words_unique(&$words)
 * Adds a user to the specified group and optionally makes them a group leader
 * This function does not create the group if it does not exist and so should only be called after the groups have been created
 */
-function add_user_group($group_id, $user_id, $group_leader=false)
+function add_user_group($group_id, $user_id, $group_leader = false)
 {
-	global $convert, $phpbb_root_path, $config, $user, $db;
+	global $db;
 
 	$sql = 'INSERT INTO ' . USER_GROUP_TABLE . ' ' . $db->sql_build_array('INSERT', array(
 		'group_id'		=> $group_id,
@@ -1128,10 +1127,11 @@ function add_user_group($group_id, $user_id, $group_leader=false)
 *
 * @param string $group The name of the special group to add to
 * @param string $select_query An SQL query to retrieve the user(s) to add to the group
+* @param bool $use_src_db
 */
 function user_group_auth($group, $select_query, $use_src_db)
 {
-	global $convert, $phpbb_root_path, $config, $user, $db, $src_db, $same_db;
+	global $convert, $user, $db, $src_db, $same_db;
 
 	if (!in_array($group, array('guests', 'registered', 'registered_coppa', 'global_moderators', 'administrators', 'bots')))
 	{
@@ -1187,7 +1187,7 @@ function get_config()
 		return $convert_config;
 	}
 
-	global $src_db, $same_db, $phpbb_root_path, $config;
+	global $src_db, $same_db;
 	global $convert;
 
 	if ($convert->config_schema['table_format'] != 'file')
@@ -1210,7 +1210,8 @@ function get_config()
 	if (is_array($convert->config_schema['table_format']))
 	{
 		$convert_config = array();
-		list($key, $val) = each($convert->config_schema['table_format']);
+		$key = key($convert->config_schema['table_format']);
+		$val = current($convert->config_schema['table_format']);
 
 		do
 		{
@@ -1229,7 +1230,12 @@ function get_config()
 		$filename = $convert->options['forum_path'] . '/' . $convert->config_schema['filename'];
 		if (!file_exists($filename))
 		{
-			$convert->p_master->error($user->lang['FILE_NOT_FOUND'] . ': ' . $filename, __LINE__, __FILE__);
+			$convert->p_master->error($user->lang('FILE_NOT_FOUND', $filename), __LINE__, __FILE__);
+		}
+
+		if (isset($convert->config_schema['array_name']))
+		{
+			unset($convert->config_schema['array_name']);
 		}
 
 		$convert_config = extract_variables_from_file($filename);
@@ -1247,7 +1253,7 @@ function get_config()
 		}
 	}
 
-	if (!sizeof($convert_config))
+	if (!count($convert_config))
 	{
 		$convert->p_master->error($user->lang['CONV_ERROR_CONFIG_EMPTY'], __LINE__, __FILE__);
 	}
@@ -1261,20 +1267,31 @@ function get_config()
 */
 function restore_config($schema)
 {
-	global $db, $config;
+	global $config;
 
 	$convert_config = get_config();
+
 	foreach ($schema['settings'] as $config_name => $src)
 	{
 		if (preg_match('/(.*)\((.*)\)/', $src, $m))
 		{
 			$var = (empty($m[2]) || empty($convert_config[$m[2]])) ? "''" : "'" . addslashes($convert_config[$m[2]]) . "'";
 			$exec = '$config_value = ' . $m[1] . '(' . $var . ');';
+			// phpcs:disable Squiz.PHP.Eval
 			eval($exec);
+			// phpcs:enable Squiz.PHP.Eval
 		}
 		else
 		{
-			$config_value = (isset($convert_config[$src])) ? $convert_config[$src] : '';
+			if ($schema['table_format'] != 'file' || empty($schema['array_name']))
+			{
+				$config_value = (isset($convert_config[$src])) ? $convert_config[$src] : '';
+			}
+			else if (!empty($schema['array_name']))
+			{
+				$src_ary = $schema['array_name'];
+				$config_value = (isset($convert_config[$src_ary][$src])) ? $convert_config[$src_ary][$src] : '';
+			}
 		}
 
 		if ($config_value !== '')
@@ -1285,7 +1302,7 @@ function restore_config($schema)
 				$config_value = truncate_string(utf8_htmlspecialchars($config_value), 255, 255, false);
 			}
 
-			set_config($config_name, $config_value);
+			$config->set($config_name, $config_value);
 		}
 	}
 }
@@ -1295,7 +1312,7 @@ function restore_config($schema)
 */
 function update_folder_pm_count()
 {
-	global $db, $convert, $user;
+	global $db;
 
 	$sql = 'SELECT user_id, folder_id, COUNT(msg_id) as num_messages
 		FROM ' . PRIVMSGS_TO_TABLE . '
@@ -1354,7 +1371,7 @@ function extract_variables_from_file($_filename)
 
 function get_path($src_path, $src_url, $test_file)
 {
-	global $config, $phpbb_root_path, $phpEx;
+	global $phpbb_root_path, $phpEx;
 
 	$board_config = get_config();
 
@@ -1381,9 +1398,9 @@ function get_path($src_path, $src_url, $test_file)
 		$url_parts = explode('/', $m[2]);
 		if (substr($src_url, -1) != '/')
 		{
-			if (preg_match('/.*\.([a-z0-9]{3,4})$/i', $url_parts[sizeof($url_parts) - 1]))
+			if (preg_match('/.*\.([a-z0-9]{3,4})$/i', $url_parts[count($url_parts) - 1]))
 			{
-				$url_parts[sizeof($url_parts) - 1] = '';
+				$url_parts[count($url_parts) - 1] = '';
 			}
 			else
 			{
@@ -1400,9 +1417,9 @@ function get_path($src_path, $src_url, $test_file)
 		$path_array = array();
 
 		$phpbb_parts = explode('/', $script_path);
-		for ($i = 0; $i < sizeof($url_parts); ++$i)
+		for ($i = 0, $end = count($url_parts); $i < $end; ++$i)
 		{
-			if ($i < sizeof($phpbb_parts[$i]) && $url_parts[$i] == $phpbb_parts[$i])
+			if ($i < count($phpbb_parts[$i]) && $url_parts[$i] == $phpbb_parts[$i])
 			{
 				$path_array[] = $url_parts[$i];
 				unset($url_parts[$i]);
@@ -1410,7 +1427,7 @@ function get_path($src_path, $src_url, $test_file)
 			else
 			{
 				$path = '';
-				for ($j = $i; $j < sizeof($phpbb_parts); ++$j)
+				for ($j = $i, $end2 = count($phpbb_parts); $j < $end2; ++$j)
 				{
 					$path .= '../';
 				}
@@ -1433,7 +1450,7 @@ function get_path($src_path, $src_url, $test_file)
 
 function compare_table($tables, $tablename, &$prefixes)
 {
-	for ($i = 0, $table_size = sizeof($tables); $i < $table_size; ++$i)
+	for ($i = 0, $table_size = count($tables); $i < $table_size; ++$i)
 	{
 		if (preg_match('/(.*)' . $tables[$i] . '$/', $tablename, $m))
 		{
@@ -1465,7 +1482,7 @@ function compare_table($tables, $tablename, &$prefixes)
 */
 function mass_auth($ug_type, $forum_id, $ug_id, $acl_list, $setting = ACL_NO)
 {
-	global $db, $convert, $user, $config;
+	global $db;
 	static $acl_option_ids, $group_ids;
 
 	if (($ug_type == 'group' || $ug_type == 'group_role') && is_string($ug_id))
@@ -1620,15 +1637,10 @@ function mass_auth($ug_type, $forum_id, $ug_id, $acl_list, $setting = ACL_NO)
 		switch ($sql_type)
 		{
 			case 'insert':
-				switch ($db->sql_layer)
+				switch ($db->get_sql_layer())
 				{
-					case 'mysql':
-					case 'mysql4':
-						$sql = 'VALUES ' . implode(', ', preg_replace('#^(.*?)$#', '(\1)', $sql_subary));
-					break;
-
-					case 'mssql':
-					case 'sqlite':
+					case 'sqlite3':
+					case 'mssqlnative':
 						$sql = implode(' UNION ALL ', preg_replace('#^(.*?)$#', 'SELECT \1', $sql_subary));
 					break;
 
@@ -1696,9 +1708,10 @@ function add_default_groups()
 		'GUESTS'			=> array('', 0, 0),
 		'REGISTERED'		=> array('', 0, 0),
 		'REGISTERED_COPPA'	=> array('', 0, 0),
-		'GLOBAL_MODERATORS'	=> array('00AA00', 1, 0),
+		'GLOBAL_MODERATORS'	=> array('00AA00', 2, 0),
 		'ADMINISTRATORS'	=> array('AA0000', 1, 1),
-		'BOTS'				=> array('9E8DA7', 0, 0)
+		'BOTS'				=> array('9E8DA7', 0, 0),
+		'NEWLY_REGISTERED'		=> array('', 0, 0),
 	);
 
 	$sql = 'SELECT *
@@ -1724,13 +1737,45 @@ function add_default_groups()
 			'group_type'			=> GROUP_SPECIAL,
 			'group_colour'			=> (string) $data[0],
 			'group_legend'			=> (int) $data[1],
-			'group_founder_manage'	=> (int) $data[2]
+			'group_founder_manage'	=> (int) $data[2],
 		);
 	}
 
-	if (sizeof($sql_ary))
+	if (count($sql_ary))
 	{
 		$db->sql_multi_insert(GROUPS_TABLE, $sql_ary);
+	}
+}
+
+function add_groups_to_teampage()
+{
+	global $db;
+
+	$teampage_groups = array(
+		'ADMINISTRATORS'	=> 1,
+		'GLOBAL_MODERATORS'	=> 2,
+	);
+
+	$sql = 'SELECT *
+		FROM ' . GROUPS_TABLE . '
+		WHERE ' . $db->sql_in_set('group_name', array_keys($teampage_groups));
+	$result = $db->sql_query($sql);
+
+	$teampage_ary = array();
+	while ($row = $db->sql_fetchrow($result))
+	{
+		$teampage_ary[] = array(
+			'group_id'				=> (int) $row['group_id'],
+			'teampage_name'			=> '',
+			'teampage_position'		=> (int) $teampage_groups[$row['group_name']],
+			'teampage_parent'		=> 0,
+		);
+	}
+	$db->sql_freeresult($result);
+
+	if (count($teampage_ary))
+	{
+		$db->sql_multi_insert(TEAMPAGE_TABLE, $teampage_ary);
 	}
 }
 
@@ -1744,7 +1789,7 @@ function sync_post_count($offset, $limit)
 	$sql = 'SELECT COUNT(post_id) AS num_posts, poster_id
 			FROM ' . POSTS_TABLE . '
 			WHERE post_postcount = 1
-				AND post_approved = 1
+				AND post_visibility = ' . ITEM_APPROVED . '
 			GROUP BY poster_id
 			ORDER BY poster_id';
 	$result = $db->sql_query_limit($sql, $limit, $offset);
@@ -1791,10 +1836,14 @@ function add_bots()
 
 	$bots = array(
 		'AdsBot [Google]'			=> array('AdsBot-Google', ''),
+		'Ahrefs [Bot]'				=> array('AhrefsBot/', ''),
 		'Alexa [Bot]'				=> array('ia_archiver', ''),
 		'Alta Vista [Bot]'			=> array('Scooter/', ''),
+		'Amazon [Bot]'				=> array('Amazonbot/', ''),
 		'Ask Jeeves [Bot]'			=> array('Ask Jeeves', ''),
-		'Baidu [Spider]'			=> array('Baiduspider+(', ''),
+		'Baidu [Spider]'			=> array('Baiduspider', ''),
+		'Bing [Bot]'				=> array('bingbot/', ''),
+		'DuckDuckGo [Bot]'			=> array('DuckDuckBot/', ''),
 		'Exabot [Bot]'				=> array('Exabot/', ''),
 		'FAST Enterprise [Crawler]'	=> array('FAST Enterprise Crawler', ''),
 		'FAST WebCrawler [Crawler]'	=> array('FAST-WebCrawler/', ''),
@@ -1808,7 +1857,7 @@ function add_bots()
 		'Heritrix [Crawler]'		=> array('heritrix/1.', ''),
 		'IBM Research [Bot]'		=> array('ibm.com/cs/crawler', ''),
 		'ICCrawler - ICjobs'		=> array('ICCrawler - ICjobs', ''),
-		'ichiro [Crawler]'			=> array('ichiro/2', ''),
+		'ichiro [Crawler]'			=> array('ichiro/', ''),
 		'Majestic-12 [Bot]'			=> array('MJ12bot/', ''),
 		'Metager [Bot]'				=> array('MetagerBot/', ''),
 		'MSN NewsBlogs'				=> array('msnbot-NewsBlogs/', ''),
@@ -1821,6 +1870,7 @@ function add_bots()
 		'Online link [Validator]'	=> array('online link validator', ''),
 		'psbot [Picsearch]'			=> array('psbot/0', ''),
 		'Seekport [Bot]'			=> array('Seekbot/', ''),
+		'Semrush [Bot]'				=> array('SemrushBot/', ''),
 		'Sensis [Crawler]'			=> array('Sensis Web Crawler', ''),
 		'SEO Crawler'				=> array('SEO search Crawler/', ''),
 		'Seoma [Crawler]'			=> array('Seoma [SEO Crawler]', ''),
@@ -1830,7 +1880,7 @@ function add_bots()
 		'Synoo [Bot]'				=> array('SynooBot/', ''),
 		'Telekom [Bot]'				=> array('crawleradmin.t-info@telekom.de', ''),
 		'TurnitinBot [Bot]'			=> array('TurnitinBot/', ''),
-		'Voyager [Bot]'				=> array('voyager/1.0', ''),
+		'Voyager [Bot]'				=> array('voyager/', ''),
 		'W3 [Sitesearch]'			=> array('W3 SiteSearch Crawler', ''),
 		'W3C [Linkcheck]'			=> array('W3C-checklink/', ''),
 		'W3C [Validator]'			=> array('W3C_*Validator', ''),
@@ -1859,7 +1909,7 @@ function add_bots()
 			'user_email'			=> '',
 			'user_lang'				=> $config['default_lang'],
 			'user_style'			=> 1,
-			'user_timezone'			=> 0,
+			'user_timezone'			=> 'UTC',
 			'user_allow_massemail'	=> 0,
 		);
 
@@ -1905,9 +1955,9 @@ function update_dynamic_config()
 
 	if ($row)
 	{
-		set_config('newest_user_id', $row['user_id'], true);
-		set_config('newest_username', $row['username'], true);
-		set_config('newest_user_colour', $row['user_colour'], true);
+		$config->set('newest_user_id', $row['user_id'], false);
+		$config->set('newest_username', $row['username'], false);
+		$config->set('newest_user_colour', $row['user_colour'], false);
 	}
 
 //	Also do not reset record online user/date. There will be old data or the fresh data from the schema.
@@ -1916,21 +1966,21 @@ function update_dynamic_config()
 
 	$sql = 'SELECT COUNT(post_id) AS stat
 		FROM ' . POSTS_TABLE . '
-		WHERE post_approved = 1';
+		WHERE post_visibility = ' . ITEM_APPROVED;
 	$result = $db->sql_query($sql);
 	$row = $db->sql_fetchrow($result);
 	$db->sql_freeresult($result);
 
-	set_config('num_posts', (int) $row['stat'], true);
+	$config->set('num_posts', (int) $row['stat'], false);
 
 	$sql = 'SELECT COUNT(topic_id) AS stat
 		FROM ' . TOPICS_TABLE . '
-		WHERE topic_approved = 1';
+		WHERE topic_visibility = ' . ITEM_APPROVED;
 	$result = $db->sql_query($sql);
 	$row = $db->sql_fetchrow($result);
 	$db->sql_freeresult($result);
 
-	set_config('num_topics', (int) $row['stat'], true);
+	$config->set('num_topics', (int) $row['stat'], false);
 
 	$sql = 'SELECT COUNT(user_id) AS stat
 		FROM ' . USERS_TABLE . '
@@ -1939,20 +1989,20 @@ function update_dynamic_config()
 	$row = $db->sql_fetchrow($result);
 	$db->sql_freeresult($result);
 
-	set_config('num_users', (int) $row['stat'], true);
+	$config->set('num_users', (int) $row['stat'], false);
 
 	$sql = 'SELECT COUNT(attach_id) as stat
 		FROM ' . ATTACHMENTS_TABLE . '
 		WHERE is_orphan = 0';
 	$result = $db->sql_query($sql);
-	set_config('num_files', (int) $db->sql_fetchfield('stat'), true);
+	$config->set('num_files', (int) $db->sql_fetchfield('stat'), false);
 	$db->sql_freeresult($result);
 
-	$sql = 'SELECT SUM(filesize) as stat
+	$sql = 'SELECT SUM(' . $db->cast_expr_to_bigint('filesize') . ') as stat
 		FROM ' . ATTACHMENTS_TABLE . '
 		WHERE is_orphan = 0';
 	$result = $db->sql_query($sql);
-	set_config('upload_dir_size', (float) $db->sql_fetchfield('stat'), true);
+	$config->set('upload_dir_size', (float) $db->sql_fetchfield('stat'), false);
 	$db->sql_freeresult($result);
 
 	/**
@@ -1976,12 +2026,11 @@ function update_dynamic_config()
 */
 function update_topics_posted()
 {
-	global $db, $config;
+	global $db;
 
-	switch ($db->sql_layer)
+	switch ($db->get_sql_layer())
 	{
-		case 'sqlite':
-		case 'firebird':
+		case 'sqlite3':
 			$db->sql_query('DELETE FROM ' . TOPICS_POSTED_TABLE);
 		break;
 
@@ -2043,7 +2092,7 @@ function update_topics_posted()
 		}
 		unset($posted);
 
-		if (sizeof($sql_ary))
+		if (count($sql_ary))
 		{
 			$db->sql_multi_insert(TOPICS_POSTED_TABLE, $sql_ary);
 		}
@@ -2078,13 +2127,14 @@ function fix_empty_primary_groups()
 	}
 	$db->sql_freeresult($result);
 
-	if (sizeof($user_ids))
+	if (count($user_ids))
 	{
 		$db->sql_query('UPDATE ' . USERS_TABLE . ' SET group_id = ' . get_group_id('administrators') . '
 			WHERE group_id = 0 AND ' . $db->sql_in_set('user_id', $user_ids));
 	}
 
 	$sql = 'SELECT user_id FROM ' . USER_GROUP_TABLE . ' WHERE group_id = ' . get_group_id('global_moderators');
+	$result = $db->sql_query($sql);
 
 	$user_ids = array();
 	while ($row = $db->sql_fetchrow($result))
@@ -2093,7 +2143,7 @@ function fix_empty_primary_groups()
 	}
 	$db->sql_freeresult($result);
 
-	if (sizeof($user_ids))
+	if (count($user_ids))
 	{
 		$db->sql_query('UPDATE ' . USERS_TABLE . ' SET group_id = ' . get_group_id('global_moderators') . '
 			WHERE group_id = 0 AND ' . $db->sql_in_set('user_id', $user_ids));
@@ -2116,7 +2166,7 @@ function fix_empty_primary_groups()
 */
 function remove_invalid_users()
 {
-	global $convert, $db, $phpEx, $phpbb_root_path;
+	global $db, $phpEx, $phpbb_root_path;
 
 	// username_clean is UNIQUE
 	$sql = 'SELECT user_id
@@ -2205,7 +2255,7 @@ function convert_bbcode($message, $convert_size = true, $extended_bbcodes = fals
 			"\n\n"
 		);
 
-		for ($i = 0; $i < sizeof($str_from); ++$i)
+		for ($i = 0, $end = count($str_from); $i < $end; ++$i)
 		{
 			$origx[] = '#\\' . str_replace(']', '\\]', $str_from[$i]) . '#is';
 			$replx[] = $str_to[$i];
@@ -2214,7 +2264,7 @@ function convert_bbcode($message, $convert_size = true, $extended_bbcodes = fals
 
 	if (preg_match_all('#\[email=([^\]]+)\](.*?)\[/email\]#i', $message, $m))
 	{
-		for ($i = 0; $i < sizeof($m[1]); ++$i)
+		for ($i = 0, $end = count($m[1]); $i < $end; ++$i)
 		{
 			if ($m[1][$i] == $m[2][$i])
 			{
@@ -2233,7 +2283,7 @@ function convert_bbcode($message, $convert_size = true, $extended_bbcodes = fals
 		$message = preg_replace('#\[size=([0-9]+)\](.*?)\[/size\]#i', '[size=\1]\2[/size]', $message);
 		$message = preg_replace('#\[size=[0-9]{2,}\](.*?)\[/size\]#i', '[size=29]\1[/size]', $message);
 
-		for ($i = sizeof($size); $i; )
+		for ($i = count($size); $i;)
 		{
 			$i--;
 			$message = str_replace('[size=' . $i . ']', '[size=' . $size[$i] . ']', $message);
@@ -2252,11 +2302,14 @@ function convert_bbcode($message, $convert_size = true, $extended_bbcodes = fals
 
 function copy_file($src, $trg, $overwrite = false, $die_on_failure = true, $source_relative_path = true)
 {
-	global $convert, $phpbb_root_path, $config, $user, $db;
+	global $convert, $phpbb_root_path, $user, $phpbb_filesystem;
+
+	/** @var \phpbb\filesystem\filesystem_interface $filesystem */
+	$filesystem = $phpbb_filesystem;
 
 	if (substr($trg, -1) == '/')
 	{
-		$trg .= basename($src);
+		$trg .= utf8_basename($src);
 	}
 	$src_path = relative_base($src, $source_relative_path, __LINE__, __FILE__);
 	$trg_path = $trg;
@@ -2273,9 +2326,9 @@ function copy_file($src, $trg, $overwrite = false, $die_on_failure = true, $sour
 
 	$path = $phpbb_root_path;
 	$parts = explode('/', $trg);
-	unset($parts[sizeof($parts) - 1]);
+	unset($parts[count($parts) - 1]);
 
-	for ($i = 0; $i < sizeof($parts); ++$i)
+	for ($i = 0, $end = count($parts); $i < $end; ++$i)
 	{
 		$path .= $parts[$i] . '/';
 
@@ -2285,7 +2338,7 @@ function copy_file($src, $trg, $overwrite = false, $die_on_failure = true, $sour
 		}
 	}
 
-	if (!is_writable($path))
+	if (!$filesystem->is_writable($path))
 	{
 		@chmod($path, 0777);
 	}
@@ -2306,7 +2359,10 @@ function copy_file($src, $trg, $overwrite = false, $die_on_failure = true, $sour
 
 function copy_dir($src, $trg, $copy_subdirs = true, $overwrite = false, $die_on_failure = true, $source_relative_path = true)
 {
-	global $convert, $phpbb_root_path, $config, $user, $db;
+	global $convert, $phpbb_root_path, $config, $user, $phpbb_filesystem;
+
+	/** @var \phpbb\filesystem\filesystem_interface $filesystem */
+	$filesystem = $phpbb_filesystem;
 
 	$dirlist = $filelist = $bad_dirs = array();
 	$src = path($src, $source_relative_path);
@@ -2320,7 +2376,7 @@ function copy_dir($src, $trg, $copy_subdirs = true, $overwrite = false, $die_on_
 		@chmod($trg_path, 0777);
 	}
 
-	if (!@is_writable($trg_path))
+	if (!$filesystem->is_writable($trg_path))
 	{
 		$bad_dirs[] = path($config['script_path']) . $trg;
 	}
@@ -2372,7 +2428,7 @@ function copy_dir($src, $trg, $copy_subdirs = true, $overwrite = false, $die_on_
 
 	if ($copy_subdirs)
 	{
-		for ($i = 0; $i < sizeof($dirlist); ++$i)
+		for ($i = 0, $end = count($dirlist); $i < $end; ++$i)
 		{
 			$dir = $dirlist[$i];
 
@@ -2387,27 +2443,27 @@ function copy_dir($src, $trg, $copy_subdirs = true, $overwrite = false, $die_on_
 				@chmod($trg_path . $dir, 0777);
 			}
 
-			if (!@is_writable($trg_path . $dir))
+			if (!$filesystem->is_writable($trg_path . $dir))
 			{
 				$bad_dirs[] = $trg . $dir;
 				$bad_dirs[] = $trg_path . $dir;
 			}
 
-			if (!sizeof($bad_dirs))
+			if (!count($bad_dirs))
 			{
 				copy_dir($src . $dir, $trg . $dir, true, $overwrite, $die_on_failure, $source_relative_path);
 			}
 		}
 	}
 
-	if (sizeof($bad_dirs))
+	if (count($bad_dirs))
 	{
-		$str = (sizeof($bad_dirs) == 1) ? $user->lang['MAKE_FOLDER_WRITABLE'] : $user->lang['MAKE_FOLDERS_WRITABLE'];
+		$str = (count($bad_dirs) == 1) ? $user->lang['MAKE_FOLDER_WRITABLE'] : $user->lang['MAKE_FOLDERS_WRITABLE'];
 		sort($bad_dirs);
 		$convert->p_master->error(sprintf($str, implode('<br />', $bad_dirs)), __LINE__, __FILE__);
 	}
 
-	for ($i = 0; $i < sizeof($filelist); ++$i)
+	for ($i = 0, $end = count($filelist); $i < $end; ++$i)
 	{
 		copy_file($src . $filelist[$i], $trg . $filelist[$i], $overwrite, $die_on_failure, $source_relative_path);
 	}
@@ -2415,7 +2471,7 @@ function copy_dir($src, $trg, $copy_subdirs = true, $overwrite = false, $die_on_
 
 function relative_base($path, $is_relative = true, $line = false, $file = false)
 {
-	global $convert, $phpbb_root_path, $config, $user, $db;
+	global $convert, $user;
 
 	if (!$is_relative)
 	{
@@ -2447,7 +2503,3 @@ function fill_dateformat($user_dateformat)
 
 	return ((empty($user_dateformat)) ? $config['default_dateformat'] : $user_dateformat);
 }
-
-
-
-?>

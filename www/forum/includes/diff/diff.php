@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package diff
-* @version $Id: diff.php 9505 2009-05-01 11:08:48Z acydburn $
-* @copyright (c) 2006 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -20,7 +23,7 @@ if (!defined('IN_PHPBB'))
 * Code from pear.php.net, Text_Diff-1.1.0 package
 * http://pear.php.net/package/Text_Diff/
 *
-* Modified by phpBB Group to meet our coding standards
+* Modified by phpBB Limited to meet our coding standards
 * and being able to integrate into phpBB
 *
 * General API for generating and formatting diffs - the differences between
@@ -43,10 +46,11 @@ class diff
 	/**
 	* Computes diffs between sequences of strings.
 	*
-	* @param array $from_lines  An array of strings. Typically these are lines from a file.
-	* @param array $to_lines    An array of strings.
+	* @param array	&$from_content	An array of strings. Typically these are lines from a file.
+	* @param array	&$to_content	An array of strings.
+	* @param bool	$preserve_cr	If true, \r is replaced by a new line in the diff output
 	*/
-	function diff(&$from_content, &$to_content, $preserve_cr = true)
+	function __construct(&$from_content, &$to_content, $preserve_cr = true)
 	{
 		$diff_engine = new diff_engine();
 		$this->_edits = $diff_engine->diff($from_content, $to_content, $preserve_cr);
@@ -71,8 +75,10 @@ class diff
 	{
 		$count = 0;
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if (is_a($edit, 'diff_op_add') || is_a($edit, 'diff_op_change'))
 			{
 				$count += $edit->nfinal();
@@ -92,8 +98,10 @@ class diff
 	{
 		$count = 0;
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if (is_a($edit, 'diff_op_delete') || is_a($edit, 'diff_op_change'))
 			{
 				$count += $edit->norig();
@@ -128,8 +136,9 @@ class diff
 
 		$rev->_edits = array();
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
 			$rev->_edits[] = $edit->reverse();
 		}
 
@@ -143,13 +152,42 @@ class diff
 	*/
 	function is_empty()
 	{
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
-			if (!is_a($edit, 'diff_op_copy'))
+			$edit = $this->_edits[$i];
+
+			// skip diff_op_copy
+			if (is_a($edit, 'diff_op_copy'))
 			{
+				continue;
+			}
+
+			if (is_a($edit, 'diff_op_delete') || is_a($edit, 'diff_op_add'))
+			{
+				$orig = $edit->orig;
+				$final = $edit->final;
+
+				// We can simplify one case where the array is usually supposed to be empty...
+				if (is_array($orig) && count($orig) == 1 && trim($orig[0]) === '')
+				{
+					$orig = array();
+				}
+				if (is_array($final) && count($final) == 1 && trim($final[0]) === '')
+				{
+					$final = array();
+				}
+
+				if (!$orig && !$final)
+				{
+					continue;
+				}
+
 				return false;
 			}
+
+			return false;
 		}
+
 		return true;
 	}
 
@@ -164,11 +202,13 @@ class diff
 	{
 		$lcs = 0;
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if (is_a($edit, 'diff_op_copy'))
 			{
-				$lcs += sizeof($edit->orig);
+				$lcs += count($edit->orig);
 			}
 		}
 		return $lcs;
@@ -185,11 +225,13 @@ class diff
 	{
 		$lines = array();
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($edit->orig)
 			{
-				array_splice($lines, sizeof($lines), 0, $edit->orig);
+				array_splice($lines, count($lines), 0, $edit->orig);
 			}
 		}
 		return $lines;
@@ -206,11 +248,13 @@ class diff
 	{
 		$lines = array();
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($edit->final)
 			{
-				array_splice($lines, sizeof($lines), 0, $edit->final);
+				array_splice($lines, count($lines), 0, $edit->final);
 			}
 		}
 		return $lines;
@@ -258,8 +302,10 @@ class diff
 
 		$prevtype = null;
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($prevtype == get_class($edit))
 			{
 				trigger_error("[diff] Edit sequence is non-optimal", E_USER_ERROR);
@@ -290,30 +336,30 @@ class mapped_diff extends diff
 	*                                  compared when computing the diff.
 	* @param array $mapped_to_lines    This array should have the same number of elements as $to_lines.
 	*/
-	function mapped_diff(&$from_lines, &$to_lines, &$mapped_from_lines, &$mapped_to_lines)
+	function __construct(&$from_lines, &$to_lines, &$mapped_from_lines, &$mapped_to_lines)
 	{
-		if (sizeof($from_lines) != sizeof($mapped_from_lines) || sizeof($to_lines) != sizeof($mapped_to_lines))
+		if (count($from_lines) != count($mapped_from_lines) || count($to_lines) != count($mapped_to_lines))
 		{
 			return false;
 		}
 
-		parent::diff($mapped_from_lines, $mapped_to_lines);
+		parent::__construct($mapped_from_lines, $mapped_to_lines);
 
 		$xi = $yi = 0;
-		for ($i = 0; $i < sizeof($this->_edits); $i++)
+		for ($i = 0; $i < count($this->_edits); $i++)
 		{
 			$orig = &$this->_edits[$i]->orig;
 			if (is_array($orig))
 			{
-				$orig = array_slice($from_lines, $xi, sizeof($orig));
-				$xi += sizeof($orig);
+				$orig = array_slice($from_lines, $xi, count($orig));
+				$xi += count($orig);
 			}
 
 			$final = &$this->_edits[$i]->final;
 			if (is_array($final))
 			{
-				$final = array_slice($to_lines, $yi, sizeof($final));
-				$yi += sizeof($final);
+				$final = array_slice($to_lines, $yi, count($final));
+				$yi += count($final);
 			}
 		}
 	}
@@ -337,12 +383,12 @@ class diff_op
 
 	function norig()
 	{
-		return ($this->orig) ? sizeof($this->orig) : 0;
+		return ($this->orig) ? count($this->orig) : 0;
 	}
 
 	function nfinal()
 	{
-		return ($this->final) ? sizeof($this->final) : 0;
+		return ($this->final) ? count($this->final) : 0;
 	}
 }
 
@@ -354,7 +400,7 @@ class diff_op
 */
 class diff_op_copy extends diff_op
 {
-	function diff_op_copy($orig, $final = false)
+	function __construct($orig, $final = false)
 	{
 		if (!is_array($final))
 		{
@@ -379,7 +425,7 @@ class diff_op_copy extends diff_op
 */
 class diff_op_delete extends diff_op
 {
-	function diff_op_delete($lines)
+	function __construct($lines)
 	{
 		$this->orig = $lines;
 		$this->final = false;
@@ -400,7 +446,7 @@ class diff_op_delete extends diff_op
 */
 class diff_op_add extends diff_op
 {
-	function diff_op_add($lines)
+	function __construct($lines)
 	{
 		$this->final = $lines;
 		$this->orig = false;
@@ -421,7 +467,7 @@ class diff_op_add extends diff_op
 */
 class diff_op_change extends diff_op
 {
-	function diff_op_change($orig, $final)
+	function __construct($orig, $final)
 	{
 		$this->orig = $orig;
 		$this->final = $final;
@@ -452,18 +498,20 @@ class diff3 extends diff
 	/**
 	* Computes diff between 3 sequences of strings.
 	*
-	* @param array $orig    The original lines to use.
-	* @param array $final1  The first version to compare to.
-	* @param array $final2  The second version to compare to.
+	* @param array &$orig		The original lines to use.
+	* @param array &$final1		The first version to compare to.
+	* @param array &$final2		The second version to compare to.
+	* @param bool $preserve_cr	If true, \r\n and bare \r are replaced by a new line
+	*							in the diff output
 	*/
-	function diff3(&$orig, &$final1, &$final2)
+	function __construct(&$orig, &$final1, &$final2, $preserve_cr = true)
 	{
 		$diff_engine = new diff_engine();
 
-		$diff_1 = $diff_engine->diff($orig, $final1);
-		$diff_2 = $diff_engine->diff($orig, $final2);
+		$diff_1 = $diff_engine->diff($orig, $final1, $preserve_cr);
+		$diff_2 = $diff_engine->diff($orig, $final2, $preserve_cr);
 
-		unset($engine);
+		unset($diff_engine);
 
 		$this->_edits = $this->_diff3($diff_1, $diff_2);
 	}
@@ -475,8 +523,10 @@ class diff3 extends diff
 	{
 		$conflicts = 0;
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($edit->is_conflict())
 			{
 				$conflicts++;
@@ -506,8 +556,10 @@ class diff3 extends diff
 
 		$lines = array();
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($edit->is_conflict())
 			{
 				// Start conflict label
@@ -544,8 +596,10 @@ class diff3 extends diff
 	{
 		$lines = array();
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($edit->is_conflict())
 			{
 				$lines = array_merge($lines, $edit->final2);
@@ -566,8 +620,10 @@ class diff3 extends diff
 	{
 		$lines = array();
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($edit->is_conflict())
 			{
 				$lines = array_merge($lines, $edit->final1);
@@ -588,8 +644,10 @@ class diff3 extends diff
 	{
 		$conflicts = array();
 
-		foreach ($this->_edits as $edit)
+		for ($i = 0, $size = count($this->_edits); $i < $size; $i++)
 		{
+			$edit = $this->_edits[$i];
+
 			if ($edit->is_conflict())
 			{
 				$conflicts[] = array($edit->final1, $edit->final2);
@@ -702,7 +760,7 @@ class diff3 extends diff
 */
 class diff3_op
 {
-	function diff3_op($orig = false, $final1 = false, $final2 = false)
+	function __construct($orig = false, $final1 = false, $final2 = false)
 	{
 		$this->orig = $orig ? $orig : array();
 		$this->final1 = $final1 ? $final1 : array();
@@ -713,6 +771,9 @@ class diff3_op
 	{
 		if (!isset($this->_merged))
 		{
+			// Prepare the arrays before we compare them. ;)
+			$this->solve_prepare();
+
 			if ($this->final1 === $this->final2)
 			{
 				$this->_merged = &$this->final1;
@@ -727,7 +788,9 @@ class diff3_op
 			}
 			else
 			{
+				// The following tries to aggressively solve conflicts...
 				$this->_merged = false;
+				$this->solve_conflict();
 			}
 		}
 
@@ -737,6 +800,267 @@ class diff3_op
 	function is_conflict()
 	{
 		return ($this->merged() === false) ? true : false;
+	}
+
+	/**
+	* Function to prepare the arrays for comparing - we want to skip over newline changes
+	* @author acydburn
+	*/
+	function solve_prepare()
+	{
+		// We can simplify one case where the array is usually supposed to be empty...
+		if (count($this->orig) == 1 && trim($this->orig[0]) === '') $this->orig = array();
+		if (count($this->final1) == 1 && trim($this->final1[0]) === '') $this->final1 = array();
+		if (count($this->final2) == 1 && trim($this->final2[0]) === '') $this->final2 = array();
+
+		// Now we only can have the case where the only difference between arrays are newlines, so compare all cases
+
+		// First, some strings we can compare...
+		$orig = $final1 = $final2 = '';
+
+		foreach ($this->orig as $null => $line) $orig .= trim($line);
+		foreach ($this->final1 as $null => $line) $final1 .= trim($line);
+		foreach ($this->final2 as $null => $line) $final2 .= trim($line);
+
+		// final1 === final2
+		if ($final1 === $final2)
+		{
+			// We preserve the part which will be used in the merge later
+			$this->final2 = $this->final1;
+		}
+		// final1 === orig
+		else if ($final1 === $orig)
+		{
+			// Here it does not really matter what we choose, but we will use the new code
+			$this->orig = $this->final1;
+		}
+		// final2 === orig
+		else if ($final2 === $orig)
+		{
+			// Here it does not really matter too (final1 will be used), but we will use the new code
+			$this->orig = $this->final2;
+		}
+	}
+
+	/**
+	* Find code portions from $orig in $final1 and use $final2 as merged instance if provided
+	* @author acydburn
+	*/
+	function _compare_conflict_seq($orig, $final1, $final2 = false)
+	{
+		$result = array('merge_found' => false, 'merge' => array());
+
+		$_orig = &$this->$orig;
+		$_final1 = &$this->$final1;
+
+		// Ok, we basically search for $orig in $final1
+		$compare_seq = count($_orig);
+
+		// Go through the conflict code
+		for ($i = 0, $j = 0, $size = count($_final1); $i < $size; $i++, $j = $i)
+		{
+			$line = $_final1[$i];
+			$skip = 0;
+
+			for ($x = 0; $x < $compare_seq; $x++)
+			{
+				// Try to skip all matching lines
+				if (trim($line) === trim($_orig[$x]))
+				{
+					$line = (++$j < $size) ? $_final1[$j] : $line;
+					$skip++;
+				}
+			}
+
+			if ($skip === $compare_seq)
+			{
+				$result['merge_found'] = true;
+
+				if ($final2 !== false)
+				{
+					$result['merge'] = array_merge($result['merge'], $this->$final2);
+				}
+				$i += ($skip - 1);
+			}
+			else if ($final2 !== false)
+			{
+				$result['merge'][] = $line;
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	* Tries to solve conflicts aggressively based on typical "assumptions"
+	* @author acydburn
+	*/
+	function solve_conflict()
+	{
+		$this->_merged = false;
+
+		// CASE ONE: orig changed into final2, but modified/unknown code in final1.
+		// IF orig is found "as is" in final1 we replace the code directly in final1 and populate this as final2/merge
+		if (count($this->orig) && count($this->final2))
+		{
+			$result = $this->_compare_conflict_seq('orig', 'final1', 'final2');
+
+			if ($result['merge_found'])
+			{
+				$this->final2 = $result['merge'];
+				$this->_merged = &$this->final2;
+				return;
+			}
+
+			$result = $this->_compare_conflict_seq('final2', 'final1');
+
+			if ($result['merge_found'])
+			{
+				$this->_merged = &$this->final1;
+				return;
+			}
+
+			// Try to solve $Id$ issues. ;)
+			if (count($this->orig) == 1 && count($this->final1) == 1 && count($this->final2) == 1)
+			{
+				$match = '#^' . preg_quote('* @version $Id: ', '#') . '[a-z\._\- ]+[0-9]+ [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9\:Z]+ [a-z0-9_\- ]+\$$#';
+
+				if (preg_match($match, $this->orig[0]) && preg_match($match, $this->final1[0]) && preg_match($match, $this->final2[0]))
+				{
+					$this->_merged = &$this->final2;
+					return;
+				}
+			}
+
+			$second_run = false;
+
+			// Try to solve issues where the only reason why the above did not work is a newline being removed in the final1 code but exist in the orig/final2 code
+			if (trim($this->orig[0]) === '' && trim($this->final2[0]) === '')
+			{
+				unset($this->orig[0], $this->final2[0]);
+				$this->orig = array_values($this->orig);
+				$this->final2 = array_values($this->final2);
+
+				$second_run = true;
+			}
+
+			// The same is true for a line at the end. ;)
+			if (count($this->orig) && count($this->final2) && count($this->orig) === count($this->final2) && trim($this->orig[count($this->orig)-1]) === '' && trim($this->final2[count($this->final2)-1]) === '')
+			{
+				unset($this->orig[count($this->orig)-1], $this->final2[count($this->final2)-1]);
+				$this->orig = array_values($this->orig);
+				$this->final2 = array_values($this->final2);
+
+				$second_run = true;
+			}
+
+			if ($second_run)
+			{
+				$result = $this->_compare_conflict_seq('orig', 'final1', 'final2');
+
+				if ($result['merge_found'])
+				{
+					$this->final2 = $result['merge'];
+					$this->_merged = &$this->final2;
+					return;
+				}
+
+				$result = $this->_compare_conflict_seq('final2', 'final1');
+
+				if ($result['merge_found'])
+				{
+					$this->_merged = &$this->final1;
+					return;
+				}
+			}
+
+			return;
+		}
+
+		// CASE TWO: Added lines from orig to final2 but final1 had added lines too. Just merge them.
+		if (!count($this->orig) && $this->final1 !== $this->final2 && count($this->final1) && count($this->final2))
+		{
+			$result = $this->_compare_conflict_seq('final2', 'final1');
+
+			if ($result['merge_found'])
+			{
+				$this->final2 = $this->final1;
+				$this->_merged = &$this->final1;
+			}
+			else
+			{
+				$result = $this->_compare_conflict_seq('final1', 'final2');
+
+				if (!$result['merge_found'])
+				{
+					$this->final2 = array_merge($this->final1, $this->final2);
+					$this->_merged = &$this->final2;
+				}
+				else
+				{
+					$this->final2 = $this->final1;
+					$this->_merged = &$this->final1;
+				}
+			}
+
+			return;
+		}
+
+		// CASE THREE: Removed lines (orig has the to-remove line(s), but final1 has additional lines which does not need to be removed). Just remove orig from final1 and then use final1 as final2/merge
+		if (!count($this->final2) && count($this->orig) && count($this->final1) && $this->orig !== $this->final1)
+		{
+			$result = $this->_compare_conflict_seq('orig', 'final1');
+
+			if (!$result['merge_found'])
+			{
+				return;
+			}
+
+			// First of all, try to find the code in orig in final1. ;)
+			$compare_seq = count($this->orig);
+			$begin = $end = -1;
+			$j = 0;
+
+			for ($i = 0, $size = count($this->final1); $i < $size; $i++)
+			{
+				$line = $this->final1[$i];
+
+				if (trim($line) === trim($this->orig[$j]))
+				{
+					// Mark begin
+					if ($begin === -1)
+					{
+						$begin = $i;
+					}
+
+					// End is always $i, the last found line
+					$end = $i;
+
+					if (isset($this->orig[$j+1]))
+					{
+						$j++;
+					}
+				}
+			}
+
+			if ($begin !== -1 && $begin + ($compare_seq - 1) == $end)
+			{
+				foreach ($this->final1 as $i => $line)
+				{
+					if ($i < $begin || $i > $end)
+					{
+						$merged[] = $line;
+					}
+				}
+
+				$this->final2 = $merged;
+				$this->_merged = &$this->final2;
+			}
+
+			return;
+		}
+
+		return;
 	}
 }
 
@@ -748,7 +1072,7 @@ class diff3_op
 */
 class diff3_op_copy extends diff3_op
 {
-	function diff3_op_copy($lines = false)
+	function __construct($lines = false)
 	{
 		$this->orig = $lines ? $lines : array();
 		$this->final1 = &$this->orig;
@@ -774,7 +1098,7 @@ class diff3_op_copy extends diff3_op
 */
 class diff3_block_builder
 {
-	function diff3_block_builder()
+	function __construct()
 	{
 		$this->_init();
 	}
@@ -829,8 +1153,6 @@ class diff3_block_builder
 
 	function _append(&$array, $lines)
 	{
-		array_splice($array, sizeof($array), 0, $lines);
+		array_splice($array, count($array), 0, $lines);
 	}
 }
-
-?>

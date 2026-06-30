@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package acp
-* @version $Id: acp_php_info.php 8479 2008-03-29 00:22:48Z naderman $
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -16,17 +19,13 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-/**
-* @package acp
-*/
 class acp_php_info
 {
 	var $u_action;
 
 	function main($id, $mode)
 	{
-		global $db, $user, $auth, $template;
-		global $config, $phpbb_root_path, $phpbb_admin_path, $phpEx;
+		global $template;
 
 		if ($mode != 'info')
 		{
@@ -35,9 +34,9 @@ class acp_php_info
 
 		$this->tpl_name = 'acp_php_info';
 		$this->page_title = 'ACP_PHP_INFO';
-		
+
 		ob_start();
-		@phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_MODULES | INFO_VARIABLES);
+		phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_MODULES | INFO_VARIABLES);
 		$phpinfo = ob_get_clean();
 
 		$phpinfo = trim($phpinfo);
@@ -47,7 +46,7 @@ class acp_php_info
 		// for this was nabbed from the PHP annotated manual
 		preg_match_all('#<body[^>]*>(.*)</body>#si', $phpinfo, $output);
 
-		if (empty($phpinfo) || empty($output))
+		if (empty($phpinfo) || empty($output[1][0]))
 		{
 			trigger_error('NO_PHPINFO_AVAILABLE', E_USER_WARNING);
 		}
@@ -67,6 +66,9 @@ class acp_php_info
 		$output = preg_replace('#<img border="0"#i', '<img', $output);
 		$output = str_replace(array('class="e"', 'class="v"', 'class="h"', '<hr />', '<font', '</font>'), array('class="row1"', 'class="row2"', '', '', '<span', '</span>'), $output);
 
+		// Fix invalid anchor names (eg "module_Zend Optimizer")
+		$output = preg_replace_callback('#<a name="([^"]+)">#', array($this, 'remove_spaces'), $output);
+
 		if (empty($output))
 		{
 			trigger_error('NO_PHPINFO_AVAILABLE', E_USER_WARNING);
@@ -79,6 +81,9 @@ class acp_php_info
 
 		$template->assign_var('PHPINFO', $output);
 	}
-}
 
-?>
+	function remove_spaces($matches)
+	{
+		return '<a name="' . str_replace(' ', '_', $matches[1]) . '">';
+	}
+}

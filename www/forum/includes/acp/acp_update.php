@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package acp
-* @version $Id: acp_update.php 8479 2008-03-29 00:22:48Z naderman $
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -16,66 +19,70 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-/**
-* @package acp
-*/
 class acp_update
 {
 	var $u_action;
 
 	function main($id, $mode)
 	{
-		global $config, $db, $user, $auth, $template, $cache;
-		global $phpbb_root_path, $phpbb_admin_path, $phpEx;
+		global $config, $user, $template, $request;
+		global $phpbb_root_path, $phpEx, $phpbb_container;
 
 		$user->add_lang('install');
 
 		$this->tpl_name = 'acp_update';
 		$this->page_title = 'ACP_VERSION_CHECK';
 
-		// Get current and latest version
-		$errstr = '';
-		$errno = 0;
-
-		$info = get_remote_file('www.phpbb.com', '/updatecheck', ((defined('PHPBB_QA')) ? '30x_qa.txt' : '30x.txt'), $errstr, $errno);
-
-		if ($info === false)
+		/* @var $version_helper \phpbb\version_helper */
+		$version_helper = $phpbb_container->get('version_helper');
+		try
 		{
-			trigger_error($errstr, E_USER_WARNING);
+			$recheck = $request->variable('versioncheck_force', false);
+			$updates_available = $version_helper->get_update_on_branch($recheck);
+			$upgrades_available = $version_helper->get_suggested_updates();
+			if (!empty($upgrades_available))
+			{
+				$upgrades_available = array_pop($upgrades_available);
+			}
+		}
+		catch (\RuntimeException $e)
+		{
+			$template->assign_var('S_VERSIONCHECK_FAIL', true);
+
+			$updates_available = array();
 		}
 
-		$info = explode("\n", $info);
-		$latest_version = trim($info[0]);
+		if (!empty($updates_available))
+		{
+			$template->assign_block_vars('updates_available', $updates_available);
+		}
 
-		$announcement_url = trim($info[1]);
-		$update_link = append_sid($phpbb_root_path . 'install/index.' . $phpEx, 'mode=update');
+		$update_link = $phpbb_root_path . 'install/app.' . $phpEx;
 
-		// Determine automatic update...
-		$sql = 'SELECT config_value
-			FROM ' . CONFIG_TABLE . "
-			WHERE config_name = 'version_update_from'";
-		$result = $db->sql_query($sql);
-		$version_update_from = (string) $db->sql_fetchfield('config_value');
-		$db->sql_freeresult($result);
+		$template_ary = [
+			'S_UP_TO_DATE'				=> empty($updates_available),
+			'U_ACTION'					=> $this->u_action,
+			'U_VERSIONCHECK_FORCE'		=> append_sid($this->u_action . '&amp;versioncheck_force=1'),
 
-		$current_version = (!empty($version_update_from)) ? $version_update_from : $config['version'];
+			'CURRENT_VERSION'			=> $config['version'],
 
-		$up_to_date_automatic = (version_compare(str_replace('rc', 'RC', strtolower($current_version)), str_replace('rc', 'RC', strtolower($latest_version)), '<')) ? false : true;
-		$up_to_date = (version_compare(str_replace('rc', 'RC', strtolower($config['version'])), str_replace('rc', 'RC', strtolower($latest_version)), '<')) ? false : true;
+			'UPDATE_INSTRUCTIONS'		=> $user->lang('UPDATE_INSTRUCTIONS', $update_link),
+			'S_VERSION_UPGRADEABLE'		=> !empty($upgrades_available),
+			'UPGRADE_INSTRUCTIONS'		=> !empty($upgrades_available) ? $user->lang('UPGRADE_INSTRUCTIONS', $upgrades_available['current'], $upgrades_available['announcement']) : false,
+		];
 
-		$template->assign_vars(array(
-			'S_UP_TO_DATE'		=> $up_to_date,
-			'S_UP_TO_DATE_AUTO'	=> $up_to_date_automatic,
-			'S_VERSION_CHECK'	=> true,
-			'U_ACTION'			=> $this->u_action,
+		$template->assign_vars($template_ary);
 
-			'LATEST_VERSION'	=> $latest_version,
-			'CURRENT_VERSION'	=> $config['version'],
-			'AUTO_VERSION'		=> $version_update_from,
+		// Incomplete update?
+		if (phpbb_version_compare($config['version'], PHPBB_VERSION, '<'))
+		{
+			$database_update_link = $phpbb_root_path . 'install/app.php/update';
 
-			'UPDATE_INSTRUCTIONS'	=> sprintf($user->lang['UPDATE_INSTRUCTIONS'], $announcement_url, $update_link),
-		));
+			$template->assign_vars(array(
+				'S_UPDATE_INCOMPLETE'		=> true,
+				'FILES_VERSION'				=> PHPBB_VERSION,
+				'INCOMPLETE_INSTRUCTIONS'	=> $user->lang('UPDATE_INCOMPLETE_EXPLAIN', $database_update_link),
+			));
+		}
 	}
 }
-
-?>

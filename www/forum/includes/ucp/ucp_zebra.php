@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package ucp
-* @version $Id: ucp_zebra.php 8479 2008-03-29 00:22:48Z naderman $
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -16,17 +19,13 @@ if (!defined('IN_PHPBB'))
 	exit;
 }
 
-/**
-* ucp_zebra
-* @package ucp
-*/
 class ucp_zebra
 {
 	var $u_action;
 
 	function main($id, $mode)
 	{
-		global $config, $db, $user, $auth, $template, $phpbb_root_path, $phpEx;
+		global $db, $user, $auth, $template, $phpbb_root_path, $phpEx, $request, $phpbb_dispatcher;
 
 		$submit	= (isset($_POST['submit']) || isset($_GET['add']) || isset($_GET['remove'])) ? true : false;
 		$s_hidden_fields = '';
@@ -45,13 +44,38 @@ class ucp_zebra
 
 			foreach ($var_ary as $var => $default)
 			{
-				$data[$var] = request_var($var, $default, true);
+				$data[$var] = $request->variable($var, $default, true);
 			}
 
-			if (!empty($data['add']) || sizeof($data['usernames']))
+			if (!empty($data['add']) || count($data['usernames']))
 			{
 				if (confirm_box(true))
 				{
+					// Remove users
+					if (!empty($data['usernames']))
+					{
+						$user_ids = $data['usernames'];
+
+						/**
+						* Remove users from friends/foes
+						*
+						* @event core.ucp_remove_zebra
+						* @var	string	mode		Zebra type: friends|foes
+						* @var	array	user_ids	User ids we remove
+						* @since 3.1.0-a1
+						*/
+						$vars = array('mode', 'user_ids');
+						extract($phpbb_dispatcher->trigger_event('core.ucp_remove_zebra', compact($vars)));
+
+						$sql = 'DELETE FROM ' . ZEBRA_TABLE . '
+							WHERE user_id = ' . $user->data['user_id'] . '
+								AND ' . $db->sql_in_set('zebra_id', $user_ids);
+						$db->sql_query($sql);
+
+						$updated = true;
+					}
+
+					// Add users
 					if ($data['add'])
 					{
 						$data['add'] = array_map('trim', array_map('utf8_clean_string', explode("\n", $data['add'])));
@@ -81,35 +105,35 @@ class ucp_zebra
 						$db->sql_freeresult($result);
 
 						// remove friends from the username array
-						$n = sizeof($data['add']);
+						$n = count($data['add']);
 						$data['add'] = array_diff($data['add'], $friends);
 
-						if (sizeof($data['add']) < $n && $mode == 'foes')
+						if (count($data['add']) < $n && $mode == 'foes')
 						{
 							$error[] = $user->lang['NOT_ADDED_FOES_FRIENDS'];
 						}
 
 						// remove foes from the username array
-						$n = sizeof($data['add']);
+						$n = count($data['add']);
 						$data['add'] = array_diff($data['add'], $foes);
 
-						if (sizeof($data['add']) < $n && $mode == 'friends')
+						if (count($data['add']) < $n && $mode == 'friends')
 						{
 							$error[] = $user->lang['NOT_ADDED_FRIENDS_FOES'];
 						}
 
 						// remove the user himself from the username array
-						$n = sizeof($data['add']);
+						$n = count($data['add']);
 						$data['add'] = array_diff($data['add'], array(utf8_clean_string($user->data['username'])));
 
-						if (sizeof($data['add']) < $n)
+						if (count($data['add']) < $n)
 						{
 							$error[] = $user->lang['NOT_ADDED_' . $l_mode . '_SELF'];
 						}
 
 						unset($friends, $foes, $n);
 
-						if (sizeof($data['add']))
+						if (count($data['add']))
 						{
 							$sql = 'SELECT user_id, user_type
 								FROM ' . USERS_TABLE . '
@@ -124,6 +148,10 @@ class ucp_zebra
 								{
 									$user_id_ary[] = $row['user_id'];
 								}
+								else if ($row['user_id'] != ANONYMOUS)
+								{
+									$error[] = $user->lang['NOT_ADDED_' . $l_mode . '_BOTS'];
+								}
 								else
 								{
 									$error[] = $user->lang['NOT_ADDED_' . $l_mode . '_ANONYMOUS'];
@@ -131,7 +159,7 @@ class ucp_zebra
 							}
 							$db->sql_freeresult($result);
 
-							if (sizeof($user_id_ary))
+							if (count($user_id_ary))
 							{
 								// Remove users from foe list if they are admins or moderators
 								if ($mode == 'foes')
@@ -147,7 +175,7 @@ class ucp_zebra
 
 									$perms = array_unique($perms);
 
-									if (sizeof($perms))
+									if (count($perms))
 									{
 										$error[] = $user->lang['NOT_ADDED_FOES_MOD_ADMIN'];
 									}
@@ -157,7 +185,7 @@ class ucp_zebra
 									unset($perms);
 								}
 
-								if (sizeof($user_id_ary))
+								if (count($user_id_ary))
 								{
 									$sql_mode = ($mode == 'friends') ? 'friend' : 'foe';
 
@@ -171,35 +199,52 @@ class ucp_zebra
 										);
 									}
 
+									/**
+									* Add users to friends/foes
+									*
+									* @event core.ucp_add_zebra
+									* @var	string	mode		Zebra type:
+									*							friends|foes
+									* @var	array	sql_ary		Array of
+									*							entries we add
+									* @since 3.1.0-a1
+									*/
+									$vars = array('mode', 'sql_ary');
+									extract($phpbb_dispatcher->trigger_event('core.ucp_add_zebra', compact($vars)));
+
 									$db->sql_multi_insert(ZEBRA_TABLE, $sql_ary);
 
 									$updated = true;
 								}
 								unset($user_id_ary);
 							}
-							else if (!sizeof($error))
+							else if (!count($error))
 							{
 								$error[] = $user->lang['USER_NOT_FOUND_OR_INACTIVE'];
 							}
 						}
 					}
-					else if (sizeof($data['usernames']))
+
+					if ($request->is_ajax())
 					{
-						// Force integer values
-						$data['usernames'] = array_map('intval', $data['usernames']);
+						$message = ($updated) ? $user->lang[$l_mode . '_UPDATED'] : implode('<br />', $error);
 
-						$sql = 'DELETE FROM ' . ZEBRA_TABLE . '
-							WHERE user_id = ' . $user->data['user_id'] . '
-								AND ' . $db->sql_in_set('zebra_id', $data['usernames']);
-						$db->sql_query($sql);
+						$json_response = new \phpbb\json_response;
+						$json_response->send(array(
+							'success' => $updated,
 
-						$updated = true;
+							'MESSAGE_TITLE'	=> $user->lang['INFORMATION'],
+							'MESSAGE_TEXT'	=> $message,
+							'REFRESH_DATA'	=> array(
+								'time'	=> 3,
+								'url'		=> $this->u_action
+							)
+						));
 					}
-
-					if ($updated)
+					else if ($updated)
 					{
 						meta_refresh(3, $this->u_action);
-						$message = $user->lang[$l_mode . '_UPDATED'] . '<br />' . implode('<br />', $error) . ((sizeof($error)) ? '<br />' : '') . '<br />' . sprintf($user->lang['RETURN_UCP'], '<a href="' . $this->u_action . '">', '</a>');
+						$message = $user->lang[$l_mode . '_UPDATED'] . '<br />' . implode('<br />', $error) . ((count($error)) ? '<br />' : '') . '<br />' . sprintf($user->lang['RETURN_UCP'], '<a href="' . $this->u_action . '">', '</a>');
 						trigger_error($message);
 					}
 					else
@@ -249,5 +294,3 @@ class ucp_zebra
 		$this->page_title = 'UCP_ZEBRA_' . $l_mode;
 	}
 }
-
-?>

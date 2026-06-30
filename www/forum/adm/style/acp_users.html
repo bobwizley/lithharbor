@@ -1,6 +1,6 @@
 <!-- INCLUDE overall_header.html -->
 
-<a name="maincontent"></a>
+<a id="maincontent"></a>
 
 <!-- IF S_SELECT_USER -->
 
@@ -13,7 +13,7 @@
 	<fieldset>
 		<legend>{L_SELECT_USER}</legend>
 	<dl>
-		<dt><label for="username">{L_FIND_USERNAME}:</label></dt>
+		<dt><label for="username">{L_ENTER_USERNAME}{L_COLON}</label></dt>
 		<dd><input class="text medium" type="text" id="username" name="username" /></dd>
 		<dd>[ <a href="{U_FIND_USERNAME}" onclick="find_username(this.href); return false;">{L_FIND_USERNAME}</a> ]</dd>
 		<dd class="full" style="text-align: left;"><label><input type="checkbox" class="radio" id="anonymous" name="u" value="{ANONYMOUS_USER_ID}" /> {L_SELECT_ANONYMOUS}</label></dd>
@@ -68,7 +68,7 @@
 	<form id="mode_select" method="post" action="{U_MODE_SELECT}">
 
 	<fieldset class="quick">
-		{L_SELECT_FORM}: <select name="mode" onchange="if (this.options[this.selectedIndex].value != '') this.form.submit();">{S_FORM_OPTIONS}</select> <input class="button2" type="submit" value="{L_GO}" />
+		{L_SELECT_FORM}{L_COLON} <select name="mode" onchange="if (this.options[this.selectedIndex].value != '') this.form.submit();">{S_FORM_OPTIONS}</select> <input class="button2" type="submit" value="{L_GO}" />
 		{S_FORM_TOKEN}
 	</fieldset>
 	</form>
@@ -82,6 +82,10 @@
 <!-- ELSEIF S_FEEDBACK -->
 
 <!-- INCLUDE acp_users_feedback.html -->
+
+<!-- ELSEIF S_WARNINGS -->
+
+<!-- INCLUDE acp_users_warnings.html -->
 
 <!-- ELSEIF S_PROFILE -->
 
@@ -102,7 +106,7 @@
 	<fieldset>
 		<legend>{L_ACP_USER_RANK}</legend>
 	<dl>
-		<dt><label for="user_rank">{L_USER_RANK}:</label></dt>
+		<dt><label for="user_rank">{L_USER_RANK}{L_COLON}</label></dt>
 		<dd><select name="user_rank" id="user_rank">{S_RANK_OPTIONS}</select></dd>
 	</dl>
 	</fieldset>
@@ -121,7 +125,7 @@
 
 	<form id="user_groups" method="post" action="{U_ACTION}">
 
-	<table cellspacing="1">
+	<table class="table1 zebra-table">
 	<tbody>
 	<!-- BEGIN group -->
 		<!-- IF group.S_NEW_GROUP_TYPE -->
@@ -129,20 +133,26 @@
 			<td class="row3" colspan="4"><strong>{group.GROUP_TYPE}</strong></td>
 		</tr>
 		<!-- ELSE -->
-			<!-- IF group.S_ROW_COUNT is even --><tr class="row1"><!-- ELSE --><tr class="row2"><!-- ENDIF -->
+			<tr>
 				<td><a href="{group.U_EDIT_GROUP}">{group.GROUP_NAME}</a></td>
-				<td><!-- IF group.S_NO_DEFAULT --><a href="{group.U_DEFAULT}">{L_GROUP_DEFAULT}</a><!-- ELSE --><strong>{L_GROUP_DEFAULT}</strong><!-- ENDIF --></td>
-				<td><!-- IF not group.S_SPECIAL_GROUP --><a href="{group.U_DEMOTE_PROMOTE}">{group.L_DEMOTE_PROMOTE}</a><!-- ELSE -->&nbsp;<!-- ENDIF --></td>
-				<td><a href="{group.U_DELETE}">{L_GROUP_DELETE}</a></td>
+				<td><!-- IF group.S_IS_MEMBER --><!-- IF group.S_NO_DEFAULT --><a href="{group.U_DEFAULT}">{L_GROUP_DEFAULT}</a><!-- ELSE --><strong>{L_GROUP_DEFAULT}</strong><!-- ENDIF --><!-- ELSEIF not group.S_IS_MEMBER and group.U_APPROVE --><a href="{group.U_APPROVE}">{L_GROUP_APPROVE}</a><!-- ELSE -->&nbsp;<!-- ENDIF --></td>
+				<td><!-- IF group.S_IS_MEMBER and not group.S_SPECIAL_GROUP --><a href="{group.U_DEMOTE_PROMOTE}">{group.L_DEMOTE_PROMOTE}</a><!-- ELSE -->&nbsp;<!-- ENDIF --></td>
+				<td>{% if group.U_DELETE %}<a href="{{ group.U_DELETE }}">{{ lang('GROUP_DELETE') }}</a>{% endif %}</td>
 			</tr>
 		<!-- ENDIF -->
+	<!-- BEGINELSE -->
+		<tr>
+			<td class="row3 centered-text" colspan="4">{{ lang('NO_GROUP') }}</td>
+		</tr>
 	<!-- END group -->
 	</tbody>
 	</table>
 
 	<!-- IF S_GROUP_OPTIONS -->
 		<fieldset class="quick">
-			{L_USER_GROUP_ADD}: <select name="g">{S_GROUP_OPTIONS}</select> <input class="button1" type="submit" name="update" value="{L_SUBMIT}" />
+			<!-- EVENT acp_users_select_group_before -->
+			{L_USER_GROUP_ADD}{L_COLON} <select name="g">{S_GROUP_OPTIONS}</select> <input class="button1" type="submit" name="update" value="{L_SUBMIT}" />
+			<!-- EVENT acp_users_select_group_after -->
 			{S_FORM_TOKEN}
 		</fieldset>
 	<!-- ENDIF -->
@@ -153,27 +163,27 @@
 	<form id="user_attachments" method="post" action="{U_ACTION}">
 
 
-	<!-- IF PAGINATION -->
 	<div class="pagination">
-		<a href="#" onclick="jumpto(); return false;" title="{L_JUMP_TO_PAGE}">{S_ON_PAGE}</a> &bull; <span>{PAGINATION}</span>
-	</div>
+	<!-- IF .pagination -->
+		<!-- INCLUDE pagination.html -->
 	<!-- ENDIF -->
+	</div>
 
 	<!-- IF .attach -->
-	<table cellspacing="1">
+	<table class="table1 zebra-table fixed-width-table">
 	<thead>
 	<tr>
 		<th>{L_FILENAME}</th>
-		<th>{L_POST_TIME}</th>
-		<th>{L_FILESIZE}</th>
-		<th>{L_DOWNLOADS}</th>
-		<th>{L_MARK}</th>
+		<th style="width: 20%;">{L_POST_TIME}</th>
+		<th style="width: 20%;">{L_FILESIZE}</th>
+		<th style="width: 20%;">{L_DOWNLOADS}</th>
+		<th style="width: 50px;">{L_MARK}</th>
 	</tr>
 	</thead>
 	<tbody>
 	<!-- BEGIN attach -->
-		<!-- IF attach.S_ROW_COUNT is even --><tr class="row1"><!-- ELSE --><tr class="row2"><!-- ENDIF -->
-		<td><a href="{attach.U_DOWNLOAD}">{attach.REAL_FILENAME}</a><br /><span class="small"><!-- IF attach.S_IN_MESSAGE --><strong>{L_PM}: </strong><!-- ELSE --><strong>{L_POST}: </strong><!-- ENDIF --><a href="{attach.U_VIEW_TOPIC}">{attach.TOPIC_TITLE}</a></span></td>
+	<tr>
+		<td><a href="{attach.U_DOWNLOAD}">{attach.REAL_FILENAME}</a><br /><span class="small"><!-- IF attach.S_IN_MESSAGE --><strong>{L_PM}{L_COLON} </strong><!-- ELSE --><strong>{L_POST}{L_COLON} </strong><!-- ENDIF --><a href="{attach.U_VIEW_TOPIC}">{attach.TOPIC_TITLE}</a></span></td>
 		<td style="text-align: center">{attach.POST_TIME}</td>
 		<td style="text-align: center">{attach.SIZE}</td>
 		<td style="text-align: center">{attach.DOWNLOAD_COUNT}</td>
@@ -188,15 +198,15 @@
 	</div>
 	<!-- ENDIF -->
 	<fieldset class="display-options">
-		{L_SORT_BY}: <select name="sk">{S_SORT_KEY}</select> <select name="sd">{S_SORT_DIR}</select>
+		{L_SORT_BY}{L_COLON} <select name="sk">{S_SORT_KEY}</select> <select name="sd">{S_SORT_DIR}</select>
 		<input class="button2" type="submit" value="{L_GO}" name="sort" />
 	</fieldset>
 	<hr />
-	<!-- IF PAGINATION -->
 	<div class="pagination">
-		<a href="#" onclick="jumpto(); return false;" title="{L_JUMP_TO_PAGE}">{S_ON_PAGE}</a> &bull; <span>{PAGINATION}</span>
-	</div>
+	<!-- IF .pagination -->
+		<!-- INCLUDE pagination.html -->
 	<!-- ENDIF -->
+	</div>
 
 	<fieldset class="quick">
 		<input class="button2" type="submit" name="delmarked" value="{L_DELETE_MARKED}" />
@@ -215,7 +225,7 @@
 	<form id="select_forum" method="post" action="{U_ACTION}">
 
 		<fieldset class="quick" style="text-align: left;">
-			{L_SELECT_FORUM}: <select name="f">{S_FORUM_OPTIONS}</select>
+			{L_SELECT_FORUM}{L_COLON} <select name="f">{S_FORUM_OPTIONS}</select>
 			<input class="button2" type="submit" value="{L_GO}" name="select" />
 			{S_FORM_TOKEN}
 		</fieldset>
@@ -224,6 +234,10 @@
 	<div class="clearfix">&nbsp;</div>
 
 	<!-- INCLUDE permission_mask.html -->
+
+<!-- ELSE -->
+
+	<!-- EVENT acp_users_mode_add -->
 
 <!-- ENDIF -->
 

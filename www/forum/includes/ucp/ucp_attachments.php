@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package ucp
-* @version $Id: ucp_attachments.php 9500 2009-04-30 08:30:01Z acydburn $
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -19,7 +22,6 @@ if (!defined('IN_PHPBB'))
 /**
 * ucp_attachments
 * User attachments
-* @package ucp
 */
 class ucp_attachments
 {
@@ -27,35 +29,49 @@ class ucp_attachments
 
 	function main($id, $mode)
 	{
-		global $template, $user, $db, $config, $phpEx, $phpbb_root_path;
+		global $template, $user, $db, $config, $phpEx, $phpbb_root_path, $phpbb_container, $request, $auth;
 
-		$start		= request_var('start', 0);
-		$sort_key	= request_var('sk', 'a');
-		$sort_dir	= request_var('sd', 'a');
+		$start		= $request->variable('start', 0);
+		$sort_key	= $request->variable('sk', 'a');
+		$sort_dir	= $request->variable('sd', 'a');
 
 		$delete		= (isset($_POST['delete'])) ? true : false;
-		$confirm	= (isset($_POST['confirm'])) ? true : false;
-		$delete_ids	= array_keys(request_var('attachment', array(0)));
+		$delete_ids	= array_keys($request->variable('attachment', array(0)));
 
-		if ($delete && sizeof($delete_ids))
+		if ($delete && count($delete_ids))
 		{
 			// Validate $delete_ids...
-			$sql = 'SELECT attach_id
-				FROM ' . ATTACHMENTS_TABLE . '
-				WHERE poster_id = ' . $user->data['user_id'] . '
-					AND is_orphan = 0
-					AND ' . $db->sql_in_set('attach_id', $delete_ids);
+			$sql = 'SELECT a.attach_id, a.in_message, p.post_edit_locked, p.post_time, t.topic_status, f.forum_id, f.forum_status, pt.folder_id
+				FROM ' . ATTACHMENTS_TABLE . ' a
+				LEFT JOIN ' . POSTS_TABLE . ' p
+					ON (a.post_msg_id = p.post_id AND a.in_message = 0)
+				LEFT JOIN ' . TOPICS_TABLE . ' t
+					ON (t.topic_id = p.topic_id AND a.in_message = 0)
+				LEFT JOIN ' . FORUMS_TABLE . ' f
+					ON (f.forum_id = t.forum_id AND a.in_message = 0)
+				LEFT JOIN ' . PRIVMSGS_TABLE . ' pr
+					ON (a.post_msg_id = pr.msg_id AND a.in_message = 1)
+				LEFT JOIN ' . PRIVMSGS_TO_TABLE . ' pt
+					ON (a.post_msg_id = pt.msg_id AND a.poster_id = pt.author_id AND a.poster_id = pt.user_id AND a.in_message = 1)
+				WHERE a.poster_id = ' . $user->data['user_id'] . '
+					AND a.is_orphan = 0
+					AND ' . $db->sql_in_set('a.attach_id', $delete_ids);
 			$result = $db->sql_query($sql);
 
 			$delete_ids = array();
 			while ($row = $db->sql_fetchrow($result))
 			{
+				if (!$this->can_delete_file($row))
+				{
+					continue;
+				}
+
 				$delete_ids[] = $row['attach_id'];
 			}
 			$db->sql_freeresult($result);
 		}
 
-		if ($delete && sizeof($delete_ids))
+		if ($delete && count($delete_ids))
 		{
 			$s_hidden_fields = array(
 				'delete'	=> 1
@@ -68,20 +84,18 @@ class ucp_attachments
 
 			if (confirm_box(true))
 			{
-				if (!function_exists('delete_attachments'))
-				{
-					include_once($phpbb_root_path . 'includes/functions_admin.' . $phpEx);
-				}
-
-				delete_attachments('attach', $delete_ids);
+				/** @var \phpbb\attachment\manager $attachment_manager */
+				$attachment_manager = $phpbb_container->get('attachment.manager');
+				$attachment_manager->delete('attach', $delete_ids);
+				unset($attachment_manager);
 
 				meta_refresh(3, $this->u_action);
-				$message = ((sizeof($delete_ids) == 1) ? $user->lang['ATTACHMENT_DELETED'] : $user->lang['ATTACHMENTS_DELETED']) . '<br /><br />' . sprintf($user->lang['RETURN_UCP'], '<a href="' . $this->u_action . '">', '</a>');
+				$message = ((count($delete_ids) == 1) ? $user->lang['ATTACHMENT_DELETED'] : $user->lang['ATTACHMENTS_DELETED']) . '<br /><br />' . sprintf($user->lang['RETURN_UCP'], '<a href="' . $this->u_action . '">', '</a>');
 				trigger_error($message);
 			}
 			else
 			{
-				confirm_box(false, (sizeof($delete_ids) == 1) ? 'DELETE_ATTACHMENT' : 'DELETE_ATTACHMENTS', build_hidden_fields($s_hidden_fields));
+				confirm_box(false, (count($delete_ids) == 1) ? 'DELETE_ATTACHMENT' : 'DELETE_ATTACHMENTS', build_hidden_fields($s_hidden_fields));
 			}
 		}
 
@@ -120,10 +134,18 @@ class ucp_attachments
 		$num_attachments = $db->sql_fetchfield('num_attachments');
 		$db->sql_freeresult($result);
 
-		$sql = 'SELECT a.*, t.topic_title, p.message_subject as message_title
+		// Ensure start is a valid value
+		/* @var $pagination \phpbb\pagination */
+		$pagination = $phpbb_container->get('pagination');
+		$start = $pagination->validate_start($start, $config['topics_per_page'], $num_attachments);
+
+		$sql = 'SELECT a.*, t.topic_title, pr.message_subject as message_title, pr.message_time as message_time, pt.folder_id, p.post_edit_locked, p.post_time, t.topic_status, f.forum_id, f.forum_status
 			FROM ' . ATTACHMENTS_TABLE . ' a
+				LEFT JOIN ' . POSTS_TABLE . ' p ON (a.post_msg_id = p.post_id AND a.in_message = 0)
 				LEFT JOIN ' . TOPICS_TABLE . ' t ON (a.topic_id = t.topic_id AND a.in_message = 0)
-				LEFT JOIN ' . PRIVMSGS_TABLE . ' p ON (a.post_msg_id = p.msg_id AND a.in_message = 1)
+				LEFT JOIN ' . FORUMS_TABLE . ' f ON (f.forum_id = t.forum_id AND a.in_message = 0)
+				LEFT JOIN ' . PRIVMSGS_TABLE . ' pr ON (a.post_msg_id = pr.msg_id AND a.in_message = 1)
+				LEFT JOIN ' . PRIVMSGS_TO_TABLE . ' pt ON (a.post_msg_id = pt.msg_id AND a.poster_id = pt.author_id AND a.poster_id = pt.user_id AND a.in_message = 1)
 			WHERE a.poster_id = ' . $user->data['user_id'] . "
 				AND a.is_orphan = 0
 			ORDER BY $order_by";
@@ -142,7 +164,7 @@ class ucp_attachments
 				}
 				else
 				{
-					$view_topic = append_sid("{$phpbb_root_path}viewtopic.$phpEx", "t={$row['topic_id']}&amp;p={$row['post_msg_id']}") . "#p{$row['post_msg_id']}";
+					$view_topic = append_sid("{$phpbb_root_path}viewtopic.$phpEx", "p={$row['post_msg_id']}") . "#p{$row['post_msg_id']}";
 				}
 
 				$template->assign_block_vars('attachrow', array(
@@ -160,6 +182,7 @@ class ucp_attachments
 					'TOPIC_ID'			=> $row['topic_id'],
 
 					'S_IN_MESSAGE'		=> $row['in_message'],
+					'S_LOCKED'			=> !$this->can_delete_file($row),
 
 					'U_VIEW_ATTACHMENT'	=> append_sid("{$phpbb_root_path}download/file.$phpEx", 'id=' . $row['attach_id']),
 					'U_VIEW_TOPIC'		=> $view_topic)
@@ -171,10 +194,12 @@ class ucp_attachments
 		}
 		$db->sql_freeresult($result);
 
+		$base_url = $this->u_action . "&amp;sk=$sort_key&amp;sd=$sort_dir";
+		$pagination->generate_template_pagination($base_url, 'pagination', 'start', $num_attachments, $config['topics_per_page'], $start);
+
 		$template->assign_vars(array(
-			'PAGE_NUMBER'			=> on_page($num_attachments, $config['topics_per_page'], $start),
-			'PAGINATION'			=> generate_pagination($this->u_action . "&amp;sk=$sort_key&amp;sd=$sort_dir", $num_attachments, $config['topics_per_page'], $start),
 			'TOTAL_ATTACHMENTS'		=> $num_attachments,
+			'NUM_ATTACHMENTS'		=> $user->lang('NUM_ATTACHMENTS', (int) $num_attachments),
 
 			'L_TITLE'				=> $user->lang['UCP_ATTACHMENTS'],
 
@@ -196,6 +221,29 @@ class ucp_attachments
 		$this->tpl_name = 'ucp_attachments';
 		$this->page_title = 'UCP_ATTACHMENTS';
 	}
-}
 
-?>
+	/**
+	 * Check if the user can delete the file
+	 *
+	 * @param array $row
+	 *
+	 * @return bool True if user can delete the file, false if not
+	 */
+	private function can_delete_file(array $row): bool
+	{
+		global $auth, $config;
+
+		if ($row['in_message'])
+		{
+			return ($row['message_time'] > (time() - ($config['pm_edit_time'] * 60)) || !$config['pm_edit_time']) && $row['folder_id'] == PRIVMSGS_OUTBOX && $auth->acl_get('u_pm_edit');
+		}
+		else
+		{
+			$can_edit_time = !$config['edit_time'] || $row['post_time'] > (time() - ($config['edit_time'] * 60));
+			$can_delete_time = !$config['delete_time'] || $row['post_time'] > (time() - ($config['delete_time'] * 60));
+			$item_locked = !$auth->acl_get('m_edit', $row['forum_id']) && ($row['forum_status'] == ITEM_LOCKED || $row['topic_status'] == ITEM_LOCKED || $row['post_edit_locked']);
+
+			return !$item_locked && $can_edit_time && $can_delete_time;
+		}
+	}
+}

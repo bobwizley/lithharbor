@@ -1,12 +1,13 @@
 <?php
 /**
 *
-* mcp [English]
+* This file is part of the phpBB Forum Software package.
 *
-* @package language
-* @version $Id: mcp.php 8940 2008-09-26 11:25:04Z toonarmy $
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -46,34 +47,43 @@ $lang = array_merge($lang, array(
 	'ALL_NOTES_DELETED'		=> 'Successfully removed all user notes.',
 	'ALL_REPORTS'			=> 'All reports',
 	'ALREADY_REPORTED'		=> 'This post has already been reported.',
+	'ALREADY_REPORTED_PM'	=> 'This private message has already been reported.',
 	'ALREADY_WARNED'		=> 'A warning has already been issued for this post.',
 	'APPROVE'				=> 'Approve',
 	'APPROVE_POST'			=> 'Approve post',
 	'APPROVE_POST_CONFIRM'	=> 'Are you sure you want to approve this post?',
 	'APPROVE_POSTS'			=> 'Approve posts',
 	'APPROVE_POSTS_CONFIRM'	=> 'Are you sure you want to approve the selected posts?',
+	'APPROVE_TOPIC'			=> 'Approve topic',
+	'APPROVE_TOPIC_CONFIRM'	=> 'Are you sure you want to approve this topic?',
+	'APPROVE_TOPICS'		=> 'Approve topics',
+	'APPROVE_TOPICS_CONFIRM'=> 'Are you sure you want to approve the selected topics?',
 
 	'CANNOT_MOVE_SAME_FORUM'=> 'You cannot move a topic to the forum it’s already in.',
 	'CANNOT_WARN_ANONYMOUS'	=> 'You cannot warn unregistered guest users.',
 	'CANNOT_WARN_SELF'		=> 'You cannot warn yourself.',
 	'CAN_LEAVE_BLANK'		=> 'This can be left blank.',
 	'CHANGE_POSTER'			=> 'Change poster',
+	'CLOSE_PM_REPORT'		=> 'Close PM report',
+	'CLOSE_PM_REPORT_CONFIRM'	=> 'Are you sure you want to close the selected PM report?',
+	'CLOSE_PM_REPORTS'		=> 'Close PM reports',
+	'CLOSE_PM_REPORTS_CONFIRM'	=> 'Are you sure you want to close the selected PM reports?',
 	'CLOSE_REPORT'			=> 'Close report',
 	'CLOSE_REPORT_CONFIRM'	=> 'Are you sure you want to close the selected report?',
 	'CLOSE_REPORTS'			=> 'Close reports',
 	'CLOSE_REPORTS_CONFIRM'	=> 'Are you sure you want to close the selected reports?',
 
+	'DELETE_PM_REPORT'			=> 'Delete PM report',
+	'DELETE_PM_REPORT_CONFIRM'	=> 'Are you sure you want to delete the selected PM report?',
+	'DELETE_PM_REPORTS'			=> 'Delete PM reports',
+	'DELETE_PM_REPORTS_CONFIRM'	=> 'Are you sure you want to delete the selected PM reports?',
 	'DELETE_POSTS'				=> 'Delete posts',
-	'DELETE_POSTS_CONFIRM'		=> 'Are you sure you want to delete these posts?',
-	'DELETE_POST_CONFIRM'		=> 'Are you sure you want to delete this post?',
 	'DELETE_REPORT'				=> 'Delete report',
 	'DELETE_REPORT_CONFIRM'		=> 'Are you sure you want to delete the selected report?',
 	'DELETE_REPORTS'			=> 'Delete reports',
 	'DELETE_REPORTS_CONFIRM'	=> 'Are you sure you want to delete the selected reports?',
 	'DELETE_SHADOW_TOPIC'		=> 'Delete shadow topic',
 	'DELETE_TOPICS'				=> 'Delete selected topics',
-	'DELETE_TOPICS_CONFIRM'		=> 'Are you sure you want to delete these topics?',
-	'DELETE_TOPIC_CONFIRM'		=> 'Are you sure you want to delete this topic?',
 	'DISAPPROVE'				=> 'Disapprove',
 	'DISAPPROVE_REASON'			=> 'Reason for disapproval',
 	'DISAPPROVE_POST'			=> 'Disapprove post',
@@ -106,12 +116,15 @@ $lang = array_merge($lang, array(
 
 	'LATEST_LOGS'				=> 'Latest 5 logged actions',
 	'LATEST_REPORTED'			=> 'Latest 5 reports',
+	'LATEST_REPORTED_PMS'		=> 'Latest 5 PM reports',
 	'LATEST_UNAPPROVED'			=> 'Latest 5 posts awaiting approval',
 	'LATEST_WARNING_TIME'		=> 'Latest warning issued',
 	'LATEST_WARNINGS'			=> 'Latest 5 warnings',
 	'LEAVE_SHADOW'				=> 'Leave shadow topic in place',
-	'LIST_REPORT'				=> '1 report',
-	'LIST_REPORTS'				=> '%d reports',
+	'LIST_REPORTS'				=> array(
+		1	=> '%d report',
+		2	=> '%d reports',
+	),
 	'LOCK'						=> 'Lock',
 	'LOCK_POST_POST'			=> 'Lock post',
 	'LOCK_POST_POST_CONFIRM'	=> 'Are you sure you want to prevent editing this post?',
@@ -122,6 +135,7 @@ $lang = array_merge($lang, array(
 	'LOCK_TOPICS_CONFIRM'		=> 'Are you sure you want to lock all selected topics?',
 	'LOGS_CURRENT_TOPIC'		=> 'Currently viewing logs of:',
 	'LOGIN_EXPLAIN_MCP'			=> 'To moderate this forum you must login.',
+	'LOGVIEW_VIEWPOST'			=> 'View post',
 	'LOGVIEW_VIEWTOPIC'			=> 'View topic',
 	'LOGVIEW_VIEWLOGS'			=> 'View topic log',
 	'LOGVIEW_VIEWFORUM'			=> 'View forum',
@@ -133,7 +147,7 @@ $lang = array_merge($lang, array(
 	'MCP_ADD'						=> 'Add a warning',
 
 	'MCP_BAN'					=> 'Banning',
-	'MCP_BAN_EMAILS'			=> 'Ban e-mails',
+	'MCP_BAN_EMAILS'			=> 'Ban emails',
 	'MCP_BAN_IPS'				=> 'Ban IPs',
 	'MCP_BAN_USERNAMES'			=> 'Ban Usernames',
 
@@ -170,7 +184,14 @@ $lang = array_merge($lang, array(
 
 	'MCP_POST_REPORTS'				=> 'Reports issued on this post',
 
-	'MCP_REPORTS'					=> 'Reported posts',
+	'MCP_PM_REPORTS'				=> 'Reported PMs',
+	'MCP_PM_REPORT_DETAILS'			=> 'PM Report details',
+	'MCP_PM_REPORTS_CLOSED'			=> 'Closed PM reports',
+	'MCP_PM_REPORTS_CLOSED_EXPLAIN'	=> 'This is a list of all reports about private messages which have previously been resolved.',
+	'MCP_PM_REPORTS_OPEN'			=> 'Open PM reports',
+	'MCP_PM_REPORTS_OPEN_EXPLAIN'	=> 'This is a list of all reported private messages which are still to be handled.',
+
+	'MCP_REPORTS'					=> 'Reported messages',
 	'MCP_REPORT_DETAILS'			=> 'Report details',
 	'MCP_REPORTS_CLOSED'			=> 'Closed reports',
 	'MCP_REPORTS_CLOSED_EXPLAIN'	=> 'This is a list of all reports about posts which have previously been resolved.',
@@ -183,6 +204,10 @@ $lang = array_merge($lang, array(
 	'MCP_QUEUE_UNAPPROVED_POSTS_EXPLAIN'	=> 'This is a list of all posts which require approving before they will be visible to users.',
 	'MCP_QUEUE_UNAPPROVED_TOPICS'			=> 'Topics awaiting approval',
 	'MCP_QUEUE_UNAPPROVED_TOPICS_EXPLAIN'	=> 'This is a list of all topics which require approving before they will be visible to users.',
+	'MCP_QUEUE_DELETED_POSTS'				=> 'Deleted posts',
+	'MCP_QUEUE_DELETED_POSTS_EXPLAIN'		=> 'This is a list of all soft deleted posts. You can restore or permanently delete the posts from this screen.',
+	'MCP_QUEUE_DELETED_TOPICS'				=> 'Deleted topics',
+	'MCP_QUEUE_DELETED_TOPICS_EXPLAIN'		=> 'This is a list of all soft deleted topics. You can restore or permanently delete the topics from this screen.',
 
 	'MCP_VIEW_USER'			=> 'View warnings for a specific user',
 
@@ -192,9 +217,8 @@ $lang = array_merge($lang, array(
 	'MCP_WARN_POST'			=> 'Warn for specific post',
 	'MCP_WARN_USER'			=> 'Warn user',
 
-	'MERGE_POSTS'			=> 'Merge posts',
-	'MERGE_POSTS_CONFIRM'	=> 'Are you sure you want to merge the selected posts?',
-	'MERGE_TOPIC_EXPLAIN'	=> 'Using the form below you can merge selected posts into another topic. These posts will not be reordered and will appear as if the users posted them to the new topic.<br />Please enter the destination topic id or click on “Select topic” to search for one.',
+	'MERGE_POSTS_CONFIRM'	=> 'Are you sure you want to move the selected posts?',
+	'MERGE_TOPIC_EXPLAIN'	=> 'Using the form below you can move selected posts into another topic. The posts will be split from this topic and merged into the other topic. These posts will not be reordered and will appear as if the users posted them to the new topic.<br />Please enter the destination topic id or click on “Select topic” to search for one.',
 	'MERGE_TOPIC_ID'		=> 'Destination topic identification number',
 	'MERGE_TOPICS'			=> 'Merge topics',
 	'MERGE_TOPICS_CONFIRM'	=> 'Are you sure you want to merge the selected topics?',
@@ -214,39 +238,57 @@ $lang = array_merge($lang, array(
 	'NOT_MODERATOR'					=> 'You are not a moderator of this forum.',
 	'NO_DESTINATION_FORUM'			=> 'Please select a forum for destination.',
 	'NO_DESTINATION_FORUM_FOUND'	=> 'There is no destination forum available.',
-	'NO_ENTRIES'					=> 'No log entries for this period.',
+	'NO_ENTRIES'					=> 'No log entries.',
 	'NO_FEEDBACK'					=> 'No feedback exists for this user.',
 	'NO_FINAL_TOPIC_SELECTED'		=> 'You have to select a destination topic for merging posts.',
 	'NO_MATCHES_FOUND'				=> 'No matches found.',
 	'NO_POST'						=> 'You have to select a post in order to warn the user for a post.',
 	'NO_POST_REPORT'				=> 'This post was not reported.',
 	'NO_POST_SELECTED'				=> 'You must select at least one post to perform this action.',
+	'NO_POSTS_DELETED'				=> 'There are no deleted posts.',
+	'NO_POSTS_QUEUE'				=> 'There are no posts waiting for approval.',
 	'NO_REASON_DISAPPROVAL'			=> 'Please give an appropriate reason for disapproval.',
 	'NO_REPORT'						=> 'No report found',
 	'NO_REPORTS'					=> 'No reports found',
 	'NO_REPORT_SELECTED'			=> 'You must select at least one report to perform this action.',
 	'NO_TOPIC_ICON'					=> 'None',
 	'NO_TOPIC_SELECTED'				=> 'You must select at least one topic to perform this action.',
+	'NO_TOPICS_DELETED'				=> 'There are no deleted topics.',
 	'NO_TOPICS_QUEUE'				=> 'There are no topics waiting for approval.',
 
 	'ONLY_TOPIC'			=> 'Only topic “%s”',
 	'OTHER_USERS'			=> 'Other users posting from this IP',
 
+	'QUICKMOD_ACTION_NOT_ALLOWED' => '%s not allowed as quickmod',
+
+	'PM_REPORT_CLOSED_SUCCESS'	=> 'The selected PM report has been closed successfully.',
+	'PM_REPORT_DELETED_SUCCESS'	=> 'The selected PM report has been deleted successfully.',
+	'PM_REPORTED_SUCCESS'		=> 'This private message has been successfully reported.',
+	'PM_REPORTS_CLOSED_SUCCESS'	=> 'The selected PM reports have been closed successfully.',
+	'PM_REPORTS_DELETED_SUCCESS'=> 'The selected PM reports have been deleted successfully.',
+	'PM_REPORTS_TOTAL'			=> array(
+		0	=> 'There are no PM reports to review.',
+		1	=> 'In total there is <strong>1</strong> PM report to review.',
+		2	=> 'In total there are <strong>%d</strong> PM reports to review.',
+	),
+	'PM_REPORT_DETAILS'			=> 'Private message report details',
 	'POSTER'					=> 'Poster',
 	'POSTS_APPROVED_SUCCESS'	=> 'The selected posts have been approved.',
 	'POSTS_DELETED_SUCCESS'		=> 'The selected posts have been successfully removed from the database.',
 	'POSTS_DISAPPROVED_SUCCESS'	=> 'The selected posts have been disapproved.',
 	'POSTS_LOCKED_SUCCESS'		=> 'The selected posts have been locked successfully.',
 	'POSTS_MERGED_SUCCESS'		=> 'The selected posts have been merged.',
-	'POSTS_UNLOCKED_SUCCESS'	=> 'The selected posts have been unlocked successfully.',
 	'POSTS_PER_PAGE'			=> 'Posts per page',
 	'POSTS_PER_PAGE_EXPLAIN'	=> '(Set to 0 to view all posts.)',
+	'POSTS_RESTORED_SUCCESS'	=> 'The selected posts have been restored successfully.',
+	'POSTS_UNLOCKED_SUCCESS'	=> 'The selected posts have been unlocked successfully.',
 	'POST_APPROVED_SUCCESS'		=> 'The selected post has been approved.',
 	'POST_DELETED_SUCCESS'		=> 'The selected post has been successfully removed from the database.',
 	'POST_DISAPPROVED_SUCCESS'	=> 'The selected post has been disapproved.',
 	'POST_LOCKED_SUCCESS'		=> 'Post locked successfully.',
 	'POST_NOT_EXIST'			=> 'The post you requested does not exist.',
 	'POST_REPORTED_SUCCESS'		=> 'This post has been successfully reported.',
+	'POST_RESTORED_SUCCESS'		=> 'This post has been restored successfully.',
 	'POST_UNLOCKED_SUCCESS'		=> 'Post unlocked successfully.',
 
 	'READ_USERNOTES'			=> 'User notes',
@@ -257,24 +299,36 @@ $lang = array_merge($lang, array(
 	'REPORTED_ON_DATE'			=> 'on',
 	'REPORTS_CLOSED_SUCCESS'	=> 'The selected reports have been closed successfully.',
 	'REPORTS_DELETED_SUCCESS'	=> 'The selected reports have been deleted successfully.',
-	'REPORTS_TOTAL'				=> 'In total there are <strong>%d</strong> reports to review.',
-	'REPORTS_ZERO_TOTAL'		=> 'There are no reports to review.',
+	'REPORTS_TOTAL'				=> array(
+		0	=> 'There are no reports to review.',
+		1	=> 'In total there is <strong>1</strong> report to review.',
+		2	=> 'In total there are <strong>%d</strong> reports to review.',
+	),
 	'REPORT_CLOSED'				=> 'This report has already been closed.',
 	'REPORT_CLOSED_SUCCESS'		=> 'The selected report has been closed successfully.',
 	'REPORT_DELETED_SUCCESS'	=> 'The selected report has been deleted successfully.',
 	'REPORT_DETAILS'			=> 'Report details',
 	'REPORT_MESSAGE'			=> 'Report this message',
-	'REPORT_MESSAGE_EXPLAIN'	=> 'Use this form to report the selected message. Reporting should generally be used only if the message breaks forum rules.',
+	'REPORT_MESSAGE_EXPLAIN'	=> 'Use this form to report the selected private message. Reporting should generally be used only if the message breaks forum rules. <strong>Reporting a private message will make its contents visible to all moderators.</strong>',
 	'REPORT_NOTIFY'				=> 'Notify me',
 	'REPORT_NOTIFY_EXPLAIN'		=> 'Informs you when your report is dealt with.',
 	'REPORT_POST_EXPLAIN'		=> 'Use this form to report the selected post to the forum moderators and board administrators. Reporting should generally be used only if the post breaks forum rules.',
 	'REPORT_REASON'				=> 'Report reason',
 	'REPORT_TIME'				=> 'Report time',
-	'REPORT_TOTAL'				=> 'In total there is <strong>1</strong> report to review.',
+	'RESTORE'					=> 'Restore',
+	'RESTORE_POST'				=> 'Restore post',
+	'RESTORE_POST_CONFIRM'		=> 'Are you sure you want to restore this post?',
+	'RESTORE_POSTS'				=> 'Restore posts',
+	'RESTORE_POSTS_CONFIRM'		=> 'Are you sure you want to restore the selected posts?',
+	'RESTORE_TOPIC'				=> 'Restore topic',
+	'RESTORE_TOPIC_CONFIRM'		=> 'Are you sure you want to restore this topic?',
+	'RESTORE_TOPICS'			=> 'Restore topics',
+	'RESTORE_TOPICS_CONFIRM'	=> 'Are you sure you want to restore the selected topics?',
 	'RESYNC'					=> 'Resync',
 	'RETURN_MESSAGE'			=> '%sReturn to the message%s',
 	'RETURN_NEW_FORUM'			=> '%sGo to the new forum%s',
 	'RETURN_NEW_TOPIC'			=> '%sGo to the new topic%s',
+	'RETURN_PM'					=> '%sReturn to the private message%s',
 	'RETURN_POST'				=> '%sReturn to the post%s',
 	'RETURN_QUEUE'				=> '%sReturn to the queue%s',
 	'RETURN_REPORTS'			=> '%sReturn to the reports%s',
@@ -302,6 +356,7 @@ $lang = array_merge($lang, array(
 	'SPLIT_TOPIC_BEYOND_CONFIRM'		=> 'Are you sure you want to split this topic at the selected post?',
 	'SPLIT_TOPIC_EXPLAIN'				=> 'Using the form below you can split a topic in two, either by selecting the posts individually or by splitting at a selected post.',
 
+	'THIS_PM_IP'				=> 'IP for this private message',
 	'THIS_POST_IP'				=> 'IP for this post',
 	'TOPICS_APPROVED_SUCCESS'	=> 'The selected topics have been approved.',
 	'TOPICS_DELETED_SUCCESS'	=> 'The selected topics have been successfully removed from the database.',
@@ -309,6 +364,7 @@ $lang = array_merge($lang, array(
 	'TOPICS_FORKED_SUCCESS'		=> 'The selected topics have been copied successfully.',
 	'TOPICS_LOCKED_SUCCESS'		=> 'The selected topics have been locked.',
 	'TOPICS_MOVED_SUCCESS'		=> 'The selected topics have been moved successfully.',
+	'TOPICS_RESTORED_SUCCESS'	=> 'The selected topics have been restored successfully.',
 	'TOPICS_RESYNC_SUCCESS'		=> 'The selected topics have been resynchronised.',
 	'TOPICS_TYPE_CHANGED'		=> 'Topic types changed successfully.',
 	'TOPICS_UNLOCKED_SUCCESS'	=> 'The selected topics have been unlocked.',
@@ -319,6 +375,7 @@ $lang = array_merge($lang, array(
 	'TOPIC_LOCKED_SUCCESS'		=> 'The selected topic has been locked.',
 	'TOPIC_MOVED_SUCCESS'		=> 'The selected topic has been moved successfully.',
 	'TOPIC_NOT_EXIST'			=> 'The topic you selected does not exist.',
+	'TOPIC_RESTORED_SUCCESS'	=> 'The selected topic has been restored successfully.',
 	'TOPIC_RESYNC_SUCCESS'		=> 'The selected topic has been resynchronised.',
 	'TOPIC_SPLIT_SUCCESS'		=> 'The selected topic has been split successfully.',
 	'TOPIC_TIME'				=> 'Topic time',
@@ -326,9 +383,11 @@ $lang = array_merge($lang, array(
 	'TOPIC_UNLOCKED_SUCCESS'	=> 'The selected topic has been unlocked.',
 	'TOTAL_WARNINGS'			=> 'Total Warnings',
 
-	'UNAPPROVED_POSTS_TOTAL'		=> 'In total there are <strong>%d</strong> posts waiting for approval.',
-	'UNAPPROVED_POSTS_ZERO_TOTAL'	=> 'There are no posts waiting for approval.',
-	'UNAPPROVED_POST_TOTAL'			=> 'In total there is <strong>1</strong> post waiting for approval.',
+	'UNAPPROVED_POSTS_TOTAL'		=> array(
+		0	=> 'There are no posts waiting for approval.',
+		1	=> 'In total there is <strong>1</strong> post waiting for approval.',
+		2	=> 'In total there are <strong>%d</strong> posts waiting for approval.',
+	),
 	'UNLOCK'						=> 'Unlock',
 	'UNLOCK_POST'					=> 'Unlock post',
 	'UNLOCK_POST_EXPLAIN'			=> 'Allow editing',
@@ -346,6 +405,7 @@ $lang = array_merge($lang, array(
 	'USER_WARNING_ADDED'			=> 'User warned successfully.',
 
 	'VIEW_DETAILS'			=> 'View details',
+	'VIEW_PM'				=> 'View private message',
 	'VIEW_POST'				=> 'View post',
 
 	'WARNED_USERS'			=> 'Warned users',
@@ -353,7 +413,7 @@ $lang = array_merge($lang, array(
 	'WARNING_PM_BODY'		=> 'The following is a warning which has been issued to you by an administrator or moderator of this site.[quote]%s[/quote]',
 	'WARNING_PM_SUBJECT'	=> 'Board warning issued',
 	'WARNING_POST_DEFAULT'	=> 'This is a warning regarding the following post made by you: %s .',
-	'WARNINGS_ZERO_TOTAL'	=> 'No warnings exist.',
+	'NO_WARNINGS'	=> 'No warnings exist.',
 
 	'YOU_SELECTED_TOPIC'	=> 'You selected topic number %d: %s.',
 
@@ -365,12 +425,10 @@ $lang = array_merge($lang, array(
 			'OTHER'		=> 'Other',
 		),
 		'DESCRIPTION' => array(
-			'WAREZ'		=> 'The post contains links to illegal or pirated software.',
-			'SPAM'		=> 'The reported post has the only purpose to advertise for a website or another product.',
-			'OFF_TOPIC'	=> 'The reported post is off topic.',
-			'OTHER'		=> 'The reported post does not fit into any other category, please use the further information field.',
-		)
+			'WAREZ'		=> 'The message contains links to illegal or pirated software.',
+			'SPAM'		=> 'The reported message has the only purpose to advertise for a website or another product.',
+			'OFF_TOPIC'	=> 'The reported message is off topic.',
+			'OTHER'		=> 'The reported message does not fit into any other category, please use the further information field.',
+		),
 	),
 ));
-
-?>

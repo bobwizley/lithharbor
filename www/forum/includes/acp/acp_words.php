@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package acp
-* @version $Id: acp_words.php 8479 2008-03-29 00:22:48Z naderman $
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -17,22 +20,20 @@ if (!defined('IN_PHPBB'))
 }
 
 /**
-* @todo [words] check regular expressions for special char replacements (stored specialchared in db)
-* @package acp
-*/
+  * @todo {words} check regular expressions for special char replacements (stored specialchared in db)
+  */
 class acp_words
 {
 	var $u_action;
-	
+
 	function main($id, $mode)
 	{
-		global $db, $user, $auth, $template, $cache;
-		global $config, $phpbb_root_path, $phpbb_admin_path, $phpEx;
+		global $db, $user, $template, $cache, $phpbb_log, $request, $phpbb_container;
 
 		$user->add_lang('acp/posting');
 
 		// Set up general vars
-		$action = request_var('action', '');
+		$action = $request->variable('action', '');
 		$action = (isset($_POST['add'])) ? 'add' : ((isset($_POST['save'])) ? 'save' : $action);
 
 		$s_hidden_fields = '';
@@ -47,8 +48,9 @@ class acp_words
 		switch ($action)
 		{
 			case 'edit':
-				$word_id = request_var('id', 0);
-				
+
+				$word_id = $request->variable('id', 0);
+
 				if (!$word_id)
 				{
 					trigger_error($user->lang['NO_WORD'] . adm_back_link($this->u_action), E_USER_WARNING);
@@ -73,7 +75,7 @@ class acp_words
 					'REPLACEMENT'		=> (isset($word_info['replacement'])) ? $word_info['replacement'] : '',
 					'S_HIDDEN_FIELDS'	=> $s_hidden_fields)
 				);
-				
+
 				return;
 
 			break;
@@ -84,20 +86,24 @@ class acp_words
 				{
 					trigger_error($user->lang['FORM_INVALID']. adm_back_link($this->u_action), E_USER_WARNING);
 				}
-				$word_id		= request_var('id', 0);
-				$word			= utf8_normalize_nfc(request_var('word', '', true));
-				$replacement	= utf8_normalize_nfc(request_var('replacement', '', true));
-				
-				if (!$word || !$replacement)
+
+				$word_id		= $request->variable('id', 0);
+				$word			= $request->variable('word', '', true);
+				$replacement	= $request->variable('replacement', '', true);
+
+				if ($word === '' || $replacement === '')
 				{
 					trigger_error($user->lang['ENTER_WORD'] . adm_back_link($this->u_action), E_USER_WARNING);
 				}
+
+				// Replace multiple consecutive asterisks with single one as those are not needed
+				$word = preg_replace('#\*{2,}#', '*', $word);
 
 				$sql_ary = array(
 					'word'			=> $word,
 					'replacement'	=> $replacement
 				);
-				
+
 				if ($word_id)
 				{
 					$db->sql_query('UPDATE ' . WORDS_TABLE . ' SET ' . $db->sql_build_array('UPDATE', $sql_ary) . ' WHERE word_id = ' . $word_id);
@@ -108,9 +114,11 @@ class acp_words
 				}
 
 				$cache->destroy('_word_censors');
+				$phpbb_container->get('text_formatter.cache')->invalidate();
 
 				$log_action = ($word_id) ? 'LOG_WORD_EDIT' : 'LOG_WORD_ADD';
-				add_log('admin', $log_action, $word);
+
+				$phpbb_log->add('admin', $user->data['user_id'], $user->ip, $log_action, false, array($word));
 
 				$message = ($word_id) ? $user->lang['WORD_UPDATED'] : $user->lang['WORD_ADDED'];
 				trigger_error($message . adm_back_link($this->u_action));
@@ -119,7 +127,7 @@ class acp_words
 
 			case 'delete':
 
-				$word_id = request_var('id', 0);
+				$word_id = $request->variable('id', 0);
 
 				if (!$word_id)
 				{
@@ -140,8 +148,9 @@ class acp_words
 					$db->sql_query($sql);
 
 					$cache->destroy('_word_censors');
+					$phpbb_container->get('text_formatter.cache')->invalidate();
 
-					add_log('admin', 'LOG_WORD_DELETE', $deleted_word);
+					$phpbb_log->add('admin', $user->data['user_id'], $user->ip, 'LOG_WORD_DELETE', false, array($deleted_word));
 
 					trigger_error($user->lang['WORD_REMOVED'] . adm_back_link($this->u_action));
 				}
@@ -157,7 +166,6 @@ class acp_words
 
 			break;
 		}
-
 
 		$template->assign_vars(array(
 			'U_ACTION'			=> $this->u_action,
@@ -181,5 +189,3 @@ class acp_words
 		$db->sql_freeresult($result);
 	}
 }
-
-?>

@@ -1,10 +1,13 @@
 <?php
 /**
 *
-* @package ucp
-* @version $Id: ucp_resend.php 9339 2009-02-23 17:53:24Z toonarmy $
-* @copyright (c) 2005 phpBB Group
-* @license http://opensource.org/licenses/gpl-license.php GNU Public License
+* This file is part of the phpBB Forum Software package.
+*
+* @copyright (c) phpBB Limited <https://www.phpbb.com>
+* @license GNU General Public License, version 2 (GPL-2.0)
+*
+* For full copyright and license information, please see
+* the docs/CREDITS.txt file.
 *
 */
 
@@ -19,7 +22,6 @@ if (!defined('IN_PHPBB'))
 /**
 * ucp_resend
 * Resending activation emails
-* @package ucp
 */
 class ucp_resend
 {
@@ -28,10 +30,10 @@ class ucp_resend
 	function main($id, $mode)
 	{
 		global $config, $phpbb_root_path, $phpEx;
-		global $db, $user, $auth, $template;
+		global $db, $user, $auth, $template, $request;
 
-		$username	= request_var('username', '', true);
-		$email		= strtolower(request_var('email', ''));
+		$username	= $request->variable('username', '', true);
+		$email		= strtolower($request->variable('email', ''));
 		$submit		= (isset($_POST['submit'])) ? true : false;
 
 		add_form_key('ucp_resend');
@@ -43,7 +45,7 @@ class ucp_resend
 				trigger_error('FORM_INVALID');
 			}
 
-			$sql = 'SELECT user_id, group_id, username, user_email, user_type, user_lang, user_actkey, user_inactive_reason
+			$sql = 'SELECT user_id, group_id, username, user_email, user_type, user_lang, user_actkey, user_actkey_expiration, user_inactive_reason
 				FROM ' . USERS_TABLE . "
 				WHERE user_email = '" . $db->sql_escape($email) . "'
 					AND username_clean = '" . $db->sql_escape(utf8_clean_string($username)) . "'";
@@ -71,6 +73,12 @@ class ucp_resend
 				trigger_error('ACCOUNT_DEACTIVATED');
 			}
 
+			// Do not resend activation email if valid one still exists
+			if (!empty($user_row['user_actkey']) && (int) $user_row['user_actkey_expiration'] >= time())
+			{
+				trigger_error('ACTIVATION_ALREADY_SENT');
+			}
+
 			// Determine coppa status on group (REGISTERED(_COPPA))
 			$sql = 'SELECT group_name, group_type
 				FROM ' . GROUPS_TABLE . '
@@ -92,16 +100,13 @@ class ucp_resend
 			if ($config['require_activation'] == USER_ACTIVATION_SELF || $coppa)
 			{
 				$messenger->template(($coppa) ? 'coppa_resend_inactive' : 'user_resend_inactive', $user_row['user_lang']);
-				$messenger->to($user_row['user_email'], $user_row['username']);
+				$messenger->set_addresses($user_row);
 
-				$messenger->headers('X-AntiAbuse: Board servername - ' . $config['server_name']);
-				$messenger->headers('X-AntiAbuse: User_id - ' . $user->data['user_id']);
-				$messenger->headers('X-AntiAbuse: Username - ' . $user->data['username']);
-				$messenger->headers('X-AntiAbuse: User IP - ' . $user->ip);
+				$messenger->anti_abuse_headers($config, $user);
 
 				$messenger->assign_vars(array(
-					'WELCOME_MSG'	=> htmlspecialchars_decode(sprintf($user->lang['WELCOME_SUBJECT'], $config['sitename'])),
-					'USERNAME'		=> htmlspecialchars_decode($user_row['username']),
+					'WELCOME_MSG'	=> html_entity_decode(sprintf($user->lang['WELCOME_SUBJECT'], $config['sitename']), ENT_COMPAT),
+					'USERNAME'		=> html_entity_decode($user_row['username'], ENT_COMPAT),
 					'U_ACTIVATE'	=> generate_board_url() . "/ucp.$phpEx?mode=activate&u={$user_row['user_id']}&k={$user_row['user_actkey']}")
 				);
 
@@ -130,16 +135,12 @@ class ucp_resend
 				while ($row = $db->sql_fetchrow($result))
 				{
 					$messenger->template('admin_activate', $row['user_lang']);
-					$messenger->to($row['user_email'], $row['username']);
-					$messenger->im($row['user_jabber'], $row['username']);
+					$messenger->set_addresses($row);
 
-					$messenger->headers('X-AntiAbuse: Board servername - ' . $config['server_name']);
-					$messenger->headers('X-AntiAbuse: User_id - ' . $user->data['user_id']);
-					$messenger->headers('X-AntiAbuse: Username - ' . $user->data['username']);
-					$messenger->headers('X-AntiAbuse: User IP - ' . $user->ip);
+					$messenger->anti_abuse_headers($config, $user);
 
 					$messenger->assign_vars(array(
-						'USERNAME'			=> htmlspecialchars_decode($user_row['username']),
+						'USERNAME'			=> html_entity_decode($user_row['username'], ENT_COMPAT),
 						'U_USER_DETAILS'	=> generate_board_url() . "/memberlist.$phpEx?mode=viewprofile&u={$user_row['user_id']}",
 						'U_ACTIVATE'		=> generate_board_url() . "/ucp.$phpEx?mode=activate&u={$user_row['user_id']}&k={$user_row['user_actkey']}")
 					);
@@ -148,6 +149,8 @@ class ucp_resend
 				}
 				$db->sql_freeresult($result);
 			}
+
+			$this->update_activation_expiration();
 
 			meta_refresh(3, append_sid("{$phpbb_root_path}index.$phpEx"));
 
@@ -165,6 +168,23 @@ class ucp_resend
 		$this->tpl_name = 'ucp_resend';
 		$this->page_title = 'UCP_RESEND';
 	}
-}
 
-?>
+	/**
+	 * Update activation expiration to 1 day from now
+	 *
+	 * @return void
+	 */
+	protected function update_activation_expiration(): void
+	{
+		global $db, $user;
+
+		$sql_ary = [
+			'user_actkey_expiration'	=> $user::get_token_expiration(),
+		];
+
+		$sql = 'UPDATE ' . USERS_TABLE . '
+			SET ' . $db->sql_build_array('UPDATE', $sql_ary) . '
+			WHERE user_id = ' . (int) $user->id();
+		$db->sql_query($sql);
+	}
+}
