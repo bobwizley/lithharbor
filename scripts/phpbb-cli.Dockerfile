@@ -6,13 +6,13 @@ FROM php:7.4-cli-alpine
 
 RUN apk add --no-cache --virtual .build-deps \
         autoconf g++ make linux-headers \
-        freetype-dev libjpeg-turbo-dev libpng-dev \
+        freetype-dev libjpeg-turbo-dev libpng-dev postgresql-dev \
         icu-dev libzip-dev oniguruma-dev sqlite-dev libxml2-dev \
     && apk add --no-cache \
-        freetype libjpeg-turbo libpng icu libzip oniguruma sqlite-libs libxml2 \
+        freetype libjpeg-turbo libpng libpq icu libzip oniguruma sqlite-libs libxml2 \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
-        mysqli pdo_mysql pdo_sqlite mbstring tokenizer xml ctype bcmath gd zip fileinfo intl opcache \
+        mysqli pdo_mysql pgsql pdo_pgsql pdo_sqlite mbstring tokenizer xml ctype bcmath gd zip fileinfo intl opcache \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/*
 
