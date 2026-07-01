@@ -20,7 +20,8 @@ RUN apk add --no-cache --virtual .user-deps shadow \
     && apk del .user-deps
 
 WORKDIR /var/www/html
-COPY www ./
+COPY site ./site
+COPY forum ./forum
 RUN chown -R www-data:www-data /var/www/html
 
 RUN sed -i 's|^listen = .*|listen = 9000|' /usr/local/etc/php-fpm.d/www.conf \

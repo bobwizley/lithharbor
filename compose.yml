@@ -32,9 +32,10 @@ services:
     labels:
       - "probe=true"
       - "probe.url=https://lithharbor.net"
+      - "probe.url.forum=https://forum.lithharbor.net"
       - "probe.mode=public"
       - "traefik.enable=true"
-      - "traefik.http.routers.lithharbor.rule=Host(`lithharbor.net`) || Host(`www.lithharbor.net`)"
+      - "traefik.http.routers.lithharbor.rule=Host(`lithharbor.net`) || Host(`www.lithharbor.net`) || Host(`forum.lithharbor.net`)"
       - "traefik.http.routers.lithharbor.entrypoints=websecure"
       - "traefik.http.routers.lithharbor.tls.certresolver=letsencrypt"
       - "traefik.http.routers.lithharbor.tls.domains[0].main=lithharbor.net"
