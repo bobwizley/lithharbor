@@ -1,5 +1,9 @@
 .git
 .gitea
+forum/files/
+forum/images/avatars/upload/
+forum/cache/production/
+forum/store/
 *.sql
 *.sql.gz
 *.log

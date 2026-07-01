@@ -1,8 +1,7 @@
-data/
 .claude/worktrees/
 .claude/settings.local.json
+forum/files/
+forum/images/avatars/upload/
+forum/cache/production/
+forum/store/
 .env
-www/forum/files/
-www/forum/images/avatars/upload/
-www/forum/cache/production/
-www/forum/store/migrations_*.log
