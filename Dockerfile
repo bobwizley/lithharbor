@@ -8,9 +8,16 @@ RUN apk add --no-cache --virtual .build-deps \
         freetype libjpeg-turbo libpng icu libzip oniguruma sqlite-libs libxml2 libpq \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-        mysqli pdo_mysql pgsql pdo_pgsql pdo_sqlite mbstring tokenizer xml ctype bcmath gd zip fileinfo intl opcache \
+        pgsql pdo_pgsql pdo_sqlite mbstring tokenizer xml ctype bcmath gd zip fileinfo intl opcache \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/*
+
+# Align www-data to uid/gid 1000: deploy-stack chowns the state bind-mounts to
+# uid 1000, so php-fpm must run as 1000 to write files/, store/, cache/ and avatars.
+RUN apk add --no-cache --virtual .user-deps shadow \
+    && groupmod -g 1000 www-data \
+    && usermod -u 1000 -g 1000 www-data \
+    && apk del .user-deps
 
 WORKDIR /var/www/html
 COPY www ./
