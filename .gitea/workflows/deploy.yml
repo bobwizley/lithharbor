@@ -5,43 +5,46 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: build-and-deploy
+  cancel-in-progress: false
+
 env:
-  REGISTRY: registry.codelab.tec.br
-  IMAGE_PHP: registry.codelab.tec.br/vctrtvfrrr/lithharbor
-  IMAGE_NGINX: registry.codelab.tec.br/vctrtvfrrr/lithharbor-nginx
+  REGISTRY: git.codelab.tec.br
+  IMAGE_PHP: git.codelab.tec.br/vctrtvfrrr/lithharbor
+  IMAGE_NGINX: git.codelab.tec.br/vctrtvfrrr/lithharbor-nginx
+  TAG: ${{ github.sha }}
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    container:
-      image: catthehacker/ubuntu:act-latest
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - /opt/compose:/opt/compose
     steps:
       - uses: actions/checkout@v4
 
       - name: Registry login
-        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "${REGISTRY}" -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ gitea.actor }}
+          password: ${{ secrets.GITEA_TOKEN }}
 
       - name: Build PHP image
-        run: docker build -f Dockerfile -t "${IMAGE_PHP}:${{ github.sha }}" -t "${IMAGE_PHP}:latest" .
+        run: docker build -f Dockerfile -t "${IMAGE_PHP}:${TAG}" -t "${IMAGE_PHP}:latest" .
 
       - name: Build nginx image
-        run: docker build -f Dockerfile.nginx -t "${IMAGE_NGINX}:${{ github.sha }}" -t "${IMAGE_NGINX}:latest" .
+        run: docker build -f Dockerfile.nginx -t "${IMAGE_NGINX}:${TAG}" -t "${IMAGE_NGINX}:latest" .
 
       - name: Push images
         run: |
-          docker push "${IMAGE_PHP}:${{ github.sha }}"
+          docker push "${IMAGE_PHP}:${TAG}"
           docker push "${IMAGE_PHP}:latest"
-          docker push "${IMAGE_NGINX}:${{ github.sha }}"
+          docker push "${IMAGE_NGINX}:${TAG}"
           docker push "${IMAGE_NGINX}:latest"
 
       - name: Deploy stack
         uses: https://git.codelab.tec.br/codelab/deploy-stack@master
         with:
-          service: lithharbor
-          bw-server: ${{ secrets.BW_SERVER }}
-          bw-clientid: ${{ secrets.BW_CLIENTID }}
-          bw-clientsecret: ${{ secrets.BW_CLIENTSECRET }}
-          bw-password: ${{ secrets.BW_PASSWORD }}
+          app: lithharbor
+          image-tag: ${{ env.TAG }}
+        env:
+          APPENV_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
