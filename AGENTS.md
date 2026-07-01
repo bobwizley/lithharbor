@@ -2,6 +2,22 @@
 
 lithharbor — phpBB forum served at `lithharbor.net`, deployed to the CodeLab VPS. Two images build from this repo: `lithharbor` (php-fpm) and `lithharbor-nginx`.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs are tracked in CodeLab Gitea using the `tea` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Uses the default triage label vocabulary. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context repo: read root `CONTEXT.md` and root `docs/adr/` when present. See `docs/agents/domain.md`.
+
+---
+
 ## Platform contract
 
 - The `deploy-stack` reference in `deploy.yml` must be a full Gitea URL (`https://git.codelab.tec.br/...@master`), not the short `owner/repo` form.
