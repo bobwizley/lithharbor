@@ -3,3 +3,7 @@ data/
 .claude/settings.local.json
 .env
 __pycache__/
+www/forum/files/
+www/forum/images/avatars/upload/
+www/forum/cache/production/
+www/forum/store/migrations_*.log
