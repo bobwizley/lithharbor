@@ -49,7 +49,7 @@ python3 -m pytest scripts/test_db_transplant.py
 
 ## Validação manual
 
-Depois da paridade, o gate comportamental desta fatia é subir o fórum apontando para o PostgreSQL local e navegar o board. O próximo passo de aplicação troca `config.php` e a imagem para o driver PostgreSQL definitivo; até lá, esta fatia prova a carga e o schema localmente.
+Depois da paridade, o gate comportamental desta fatia é subir o fórum apontando para o PostgreSQL local e navegar o board. O próximo passo de aplicação troca `config.php` e os defaults de ambiente para o driver PostgreSQL definitivo; até lá, esta fatia prova a carga e o schema localmente.
 
 ## Descartar
 
