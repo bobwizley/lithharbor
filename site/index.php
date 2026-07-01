@@ -55,7 +55,7 @@
                       <tr>
                         <td width="4" align="left" background="images/balao/ladoesq.png"><img src="images/balao/ladoesq.png" width="4" height="100"></td>
                         <td width="388" valign="top"><div class="texto">
-                          <p align="center"><font size="2"><strong><img src="images/icons/05290003.png" width="22" height="22" align="absmiddle"> Bem-vindo <img src="images/icons/05290003.png" width="22" height="22" align="absmiddle"></strong></font></p>
+                          <p align="center"><font size="2"><strong><img src="https://forum.lithharbor.net/images/icons/05290003.png" width="22" height="22" align="absmiddle"> Bem-vindo <img src="https://forum.lithharbor.net/images/icons/05290003.png" width="22" height="22" align="absmiddle"></strong></font></p>
                           Ol&aacute;! Este site &eacute; uma DataBase do Maple Story Brasil.
                           Aqui voc&ecirc; vai encontrar informa&ccedil;&otilde;es que facilitar&atilde;o
                           muito sua vida em Maple Story. Tais como: itens, miss&otilde;es
