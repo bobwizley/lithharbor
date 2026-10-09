@@ -9,3 +9,4 @@ forum/store/
 *.log
 .DS_Store
 README.md
+/data/
