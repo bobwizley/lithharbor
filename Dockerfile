@@ -1,14 +1,14 @@
-FROM php:7.4-fpm-alpine
+FROM php:8.3-fpm-alpine
 
 RUN apk add --no-cache --virtual .build-deps \
         autoconf g++ make linux-headers \
         freetype-dev libjpeg-turbo-dev libpng-dev \
-        icu-dev libzip-dev oniguruma-dev sqlite-dev libxml2-dev postgresql-dev \
+        icu-dev libzip-dev postgresql-dev \
     && apk add --no-cache \
-        freetype libjpeg-turbo libpng icu libzip oniguruma sqlite-libs libxml2 libpq \
+        freetype libjpeg-turbo libpng icu libzip libpq \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
-        pgsql pdo_pgsql pdo_sqlite mbstring tokenizer xml ctype bcmath gd zip fileinfo intl opcache \
+        pgsql pdo_pgsql bcmath gd zip intl \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/*
 
